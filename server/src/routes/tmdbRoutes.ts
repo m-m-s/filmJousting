@@ -1,0 +1,106 @@
+import { Router, type Response } from 'express';
+import { getGenres, searchTMDB, discoverMovies, getMovieDetails } from '../services/tmdbService.js';
+import { scrapeLetterboxd, scrapedMovieDetail } from '../services/letterboxdService.js';
+import { movieFilter } from '../services/scoringEngine.js';
+import { AppError, type ErrorCode } from '../errors.js';
+
+const router = Router();
+
+// Every failure path — validation, upstream TMDB/Letterboxd errors, or a
+// genuinely unexpected bug — ends up going through this. AppError instances
+// carry their own code/status (thrown deliberately from a service); anything
+// else is logged in full here (this is where a bug tracker like Sentry would
+// be wired in) and the client only ever sees the generic fallback code, never
+// the raw error/stack trace.
+function sendError(res: Response, error: unknown, fallbackCode: ErrorCode, logLabel: string) {
+  if (error instanceof AppError) {
+    console.error(`[${error.code}] ${logLabel}:`, error.message);
+    res.status(error.status).json({ error: { code: error.code, message: error.message } });
+    return;
+  }
+  // TODO: send `error` to a bug tracker (Sentry, etc.) once this is live.
+  console.error(`[${fallbackCode}] ${logLabel}:`, error);
+  res.status(500).json({ error: { code: fallbackCode, message: 'Unexpected server error' } });
+}
+
+router.get('/genres', async (_req, res) => {
+  try {
+    const genres = await getGenres();
+    res.json(genres);
+  } catch (error) {
+    sendError(res, error, 'GENRES_FAILED', 'Failed to fetch genres');
+  }
+});
+
+router.get('/search/:type', async (req, res) => {
+  try {
+    const validTypes = ['movie', 'keyword', 'person'];
+    const type = req.params.type as 'movie' | 'keyword' | 'person';
+    const query = req.query.q as string;
+    if (!validTypes.includes(type)) {
+      res.status(400).json({ error: { code: 'SEARCH_INVALID_TYPE', message: `Invalid search type: ${type}` } });
+      return;
+    }
+    if (!query) {
+      res.status(400).json({ error: { code: 'SEARCH_MISSING_QUERY', message: 'Query parameter "q" is required' } });
+      return;
+    }
+    const results = await searchTMDB(type, query);
+    res.json(results);
+  } catch (error) {
+    sendError(res, error, 'SEARCH_FAILED', `Failed to search ${req.params.type}`);
+  }
+});
+
+router.get('/movie/:id', async (req, res) => {
+  try {
+    const details = await getMovieDetails(req.params.id);
+    res.json(details);
+  } catch (error) {
+    // tmdbFetch surfaces a 404 (bad/removed movie id) as a generic AppError
+    // carrying the real upstream status — recognize that specific case here
+    // rather than letting it fall through to the generic fallback below.
+    if (error instanceof AppError && error.status === 404) {
+      sendError(res, new AppError('MOVIE_DETAILS_NOT_FOUND', 404, error.message), 'MOVIE_DETAILS_FAILED', `Movie ${req.params.id} not found`);
+      return;
+    }
+    sendError(res, error, 'MOVIE_DETAILS_FAILED', `Failed to fetch movie ${req.params.id}`);
+  }
+});
+
+router.post('/discover', async (req, res) => {
+  try {
+    const filters = req.body;
+    if (!filters.genres || filters.genres.length === 0) {
+      res.status(400).json({ error: { code: 'DISCOVER_MISSING_GENRES', message: 'At least one genre is required' } });
+      return;
+    }
+    const results = await discoverMovies(filters);
+    const sortedResults = movieFilter(results, filters);
+    res.json(sortedResults);
+  } catch (error) {
+    sendError(res, error, 'DISCOVER_FAILED', 'Failed to discover movies');
+  }
+});
+
+router.post('/letterboxdList', async (req, res) => {
+  try {
+    const { listUrl, filters } = req.body;
+    if (!listUrl || !filters) {
+      res.status(400).json({ error: { code: 'LETTERBOXD_MISSING_PARAMS', message: 'listUrl and filters are required' } });
+      return;
+    }
+    const titles = await scrapeLetterboxd(listUrl);
+    const movieList = await scrapedMovieDetail(titles);
+    if (movieList.length === 0) {
+      res.status(404).json({ error: { code: 'LETTERBOXD_NO_MATCHES', message: `Found ${titles.length} titles on the list but none matched a TMDB movie` } });
+      return;
+    }
+    const sortedMovies = movieFilter(movieList, filters);
+    res.json(sortedMovies);
+  } catch (error) {
+    sendError(res, error, 'LETTERBOXD_FAILED', 'Failed to scrape Letterboxd list');
+  }
+});
+
+export default router;

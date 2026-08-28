@@ -1,0 +1,30 @@
+import { Button } from "./ui/Button"
+import { Modal } from "./ui/Modal"
+import helmet from "../assets/helmet.svg"
+
+type FilterButtonProps = {
+    name: string;
+    isOpen: boolean;
+    clickAction: () => void;
+    onClose: () => void;
+    align?: 'center' | 'top';
+    info?: React.ReactNode;
+    childern?: React.ReactNode;
+    buttonClassName?: string;
+};
+
+export const FilterButton = ({name, isOpen, clickAction, onClose, info, align, childern, buttonClassName}: FilterButtonProps) => {
+    return (
+        <div className="flex flex-col items-center">
+            <div className="group relative flex items-center w-fit mx-auto">
+                <img src={helmet} alt="" className="absolute right-full mr-0.5 h-6 w-auto -scale-x-100 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <Button onClick={clickAction} className={buttonClassName}>{name}</Button>
+                <img src={helmet} alt="" className="absolute left-full ml-0.5 h-6 w-auto opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            </div>
+                {info}
+            <Modal isOpen= {isOpen} onClose= {onClose} align={align}> 
+                {childern}
+                </Modal>
+        </div>
+    );
+}

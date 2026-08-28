@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Romantik';
+  src: url('./assets/typeface/Romantik.ttf') format('truetype');
+}
+
+@theme {
+  --font-fell: 'IM Fell English', serif;
+  --font-dropcap: 'Romantik', serif;
+}
+
+body{
+  overflow-x: hidden;
+  padding: clamp(12px, 5vw, 50px);
+  font-family: var(--font-fell);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-image: url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg');
+  background-color: #FCF8F9;
+}
+
+@keyframes flyInHoldFade {
+  0%   { opacity: 0; transform: translate(0, -70px); }
+  20%  { opacity: 1; transform: translate(0, 0); }
+  65%  { opacity: 1; transform: translate(0, 0); }
+  80%  { opacity: 0; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(0, 0); }
+}
+
+@keyframes flyInHoldExitLeftMirrored {
+  0%   { opacity: 0; transform: translate(0, -70px) scaleX(-1); }
+  20%  { opacity: 1; transform: translate(0, 0) scaleX(-1); }
+  65%  { opacity: 1; transform: translate(0, 0) scaleX(-1); }
+  100% { opacity: 0; transform: translate(-80px, 0) scaleX(-1); }
+}
+
+.loading-dot {
+  animation-duration: 1.4s;
+  animation-timing-function: cubic-bezier(.34, 1.56, .64, 1);
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+
+.loading-dot-1 { animation-name: flyInHoldFade; animation-delay: 0s; }
+.loading-dot-2 { animation-name: flyInHoldFade; animation-delay: 0.2s; }
+.loading-dot-3 { animation-name: flyInHoldExitLeftMirrored; animation-delay: 0.4s; }
+
+* {
+  scrollbar-color: black transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: black;
+  border-radius: 0;
+}
+
+.drop-cap::first-letter {
+  font-family: var(--font-dropcap);
+  font-size: 3em;
+  float: left;
+  line-height: 1;
+  padding-right: 0.15em;
+}
+
+.joust-border {
+  border: none;
+  background-image: url('./assets/joustBorder.svg');
+  background-size: 100% 180%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  padding: 2px 12px;
+  width: 205px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 13px;
+  font-size: 1.26rem;
+}
+
+.discover-border {
+  border: none;
+  background-image: url('./assets/discoverBorder.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  padding: 2px 12px;
+  width: 205px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 16px;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 1.26rem;
+  text-shadow:
+    -1px -1px 0 #FCF8F9,
+     1px -1px 0 #FCF8F9,
+    -1px  1px 0 #FCF8F9,
+     1px  1px 0 #FCF8F9,
+     0 0 6px #FCF8F9;
+}
