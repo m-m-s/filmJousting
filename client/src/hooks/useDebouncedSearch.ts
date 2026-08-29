@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useErrorModal } from '../context/ErrorContext';
 import { getErrorCodeFromResponse } from '../lib/errorMessages';
+import { API_URL } from '../config';
 
 export const useDebouncedSearch = (query: string, subject: 'person' | 'keyword') => {
   const [options, setOptions] = useState<any[]>([]);
@@ -14,7 +15,7 @@ export const useDebouncedSearch = (query: string, subject: 'person' | 'keyword')
         setIsLoading(true);
         try {
         const response = await fetch(
-          `http://localhost:3001/api/tmdb/search/${subject}?q=${encodeURIComponent(query)}`,
+          `${API_URL}/api/tmdb/search/${subject}?q=${encodeURIComponent(query)}`,
           {signal: controller.signal}
         );
         if (!response.ok){

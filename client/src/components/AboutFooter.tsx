@@ -7,7 +7,7 @@ export const AboutFooter = () => {
 
     return (
         <>
-            <footer className="fixed bottom-4 right-4 z-40">
+            <footer className="fixed bottom-1 right-1 sm:bottom-4 sm:right-4 z-40">
                 <Button variant="sort" onClick={() => setModal('about')} className="text-lg font-bold">?</Button>
             </footer>
             <Modal isOpen={modal === 'about'} onClose={() => setModal(null)} align="center">

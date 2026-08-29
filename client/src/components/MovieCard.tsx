@@ -3,6 +3,7 @@ import { Modal } from './ui/Modal'
 import { Button } from './ui/Button';
 import { formatDate, formatMins } from '../lib/utils';
 import sword from '../assets/sword.svg';
+import { API_URL } from '../config';
 
 type MovieCardProps = {
     id: number;
@@ -21,7 +22,7 @@ export const MovieCard = ({id, poster, title, overview, rating, releaseDate, onC
     useEffect(() => {
         if (!cardState) return;
         setRuntime(null);
-        fetch(`http://localhost:3001/api/tmdb/movie/${id}`)
+        fetch(`${API_URL}/api/tmdb/movie/${id}`)
             .then(res => {
                 if (!res.ok) throw new Error(`movie/${id} responded ${res.status}`);
                 return res.json();

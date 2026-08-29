@@ -3,6 +3,7 @@ import type { FilterCriteria, SortKey, SortDirection } from "@/types";
 import { sortMovies } from '@/lib/filters';
 import { useErrorModal } from '../context/ErrorContext';
 import { getErrorCodeFromResponse } from '../lib/errorMessages';
+import { API_URL } from '../config';
 
 type MovieFetchingProps = {
     sortKey: SortKey;
@@ -19,7 +20,7 @@ export const MovieFetching = ({sortKey, sortDirection, searchQuery, discoverPara
     const discover = async () => {
     setIsLoading(true);
     try {
-        const response = await fetch('http://localhost:3001/api/tmdb/discover', {
+        const response = await fetch(`${API_URL}/api/tmdb/discover`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json' },
         body: JSON.stringify(
@@ -46,7 +47,7 @@ export const MovieFetching = ({sortKey, sortDirection, searchQuery, discoverPara
     const listScraping = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch ('http://localhost:3001/api/tmdb/letterboxdList', {
+        const response = await fetch(`${API_URL}/api/tmdb/letterboxdList`, {
           method: 'POST',
           headers: { 'Content-Type' : 'application/json' },
           body: JSON.stringify({
