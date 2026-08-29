@@ -104,6 +104,19 @@ useEffect(() => {
     scrollSpacerRef.current.style.height = `${deficit}px`;
   }
   resultsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // The spacer only needs to exist long enough for the smooth scroll above
+  // to have room to complete — collapse it once scrolling settles so it
+  // doesn't linger as dead space at the bottom of the page.
+  const collapseSpacer = () => {
+    if (scrollSpacerRef.current) scrollSpacerRef.current.style.height = '0px';
+  };
+  window.addEventListener('scrollend', collapseSpacer, { once: true });
+  const fallback = window.setTimeout(collapseSpacer, 1000);
+  return () => {
+    window.removeEventListener('scrollend', collapseSpacer);
+    window.clearTimeout(fallback);
+  };
 }, [currentPage, movies]);
 
 const sortedMovies = sortMovies(movies, sortKey, sortDirection);
