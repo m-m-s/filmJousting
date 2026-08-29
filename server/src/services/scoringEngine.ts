@@ -9,7 +9,7 @@ export const movieFilter = (movies: Movie[], filters: FilterCriteria): ScoredMov
         for (const genreId of movie.genre_ids) {
             const matchedGenre = filters.genres.find(g => g.id === genreId);
             if (matchedGenre) {
-                score += matchedGenre.weight;
+                score *= 1 + matchedGenre.weight / 10;
             }
         }
 

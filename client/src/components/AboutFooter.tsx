@@ -13,7 +13,9 @@ export const AboutFooter = () => {
             <Modal isOpen={modal === 'about'} onClose={() => setModal(null)} align="center">
                 <div className="flex flex-col items-center gap-3 text-start m-5">
                     <h1 className="text-2xl font-bold">About</h1>
-                    <p>Film Jousting is a site designed to help you and your friends settle the age old question of "What movie should we watch?" Set filters to search for movie recommendations from the ether or from within an existing Letterboxd list (this works for any person's watchlist or public list!) <br></br><br></br> Still not sure which movie to watch? Run a selected top few through a head-to-head tournament bracket until one film is crowned champion!! <br></br><br></br> A passion project made by your friendly neighborhood film enthusiast. The recommendations are designed to have a degree of randomness everytime you discover. Want to see different results? Re-Discover! Happy watching!</p>
+                    <p>Film Jousting is a site designed to help you and your friends settle the age old question of "What movie should we watch?" Set filters to search for movie recommendations from the ether (TMDB) or from within an existing Letterboxd list (this works for any person's watchlist or public list!) 
+                        <br></br><br></br> Still not sure which movie to watch? Run a selected top few through a head-to-head tournament bracket until one film is crowned champion!! 
+                        <br></br><br></br> A passion project made by your friendly neighborhood film enthusiast. The recommendations are designed to have a degree of randomness everytime you discover. Want to see different results? Re-Discover! Happy watching!</p>
                     <Button variant="sort" onClick={() => setModal('credits')}>Credits</Button>
                 </div>
             </Modal>

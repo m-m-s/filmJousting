@@ -44,8 +44,8 @@ body{
 }
 
 .loading-dot-1 { animation-name: flyInHoldFade; animation-delay: 0s; }
-.loading-dot-2 { animation-name: flyInHoldFade; animation-delay: 0.2s; }
-.loading-dot-3 { animation-name: flyInHoldExitLeftMirrored; animation-delay: 0.4s; }
+.loading-dot-2 { animation-name: flyInHoldFade; animation-delay: 1.4s; }
+.loading-dot-3 { animation-name: flyInHoldExitLeftMirrored; animation-delay: 2.8s; }
 
 * {
   scrollbar-color: black transparent;
@@ -64,6 +64,10 @@ body{
 ::-webkit-scrollbar-thumb {
   background-color: black;
   border-radius: 0;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
 }
 
 .drop-cap::first-letter {

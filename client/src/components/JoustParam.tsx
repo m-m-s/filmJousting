@@ -25,6 +25,15 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
     const [currentRound, setCurrentRound] = useState<number>(0);
     const [winners, setWinners] = useState<ScoredMovie[]>([]);
     const [finalWinner, setFinalWinner] = useState<ScoredMovie | null>(null);
+
+    type JoustSnapshot = {
+        bracketedMovies: [ScoredMovie, ScoredMovie][] | null | undefined;
+        winners: ScoredMovie[];
+        currentRound: number;
+        rounds: number;
+        finalWinner: ScoredMovie | null;
+    };
+    const [history, setHistory] = useState<JoustSnapshot[]>([]);
     
     const sortOptions: {key: SortKey, label: string}[] =[
         { key: 'score', label: 'Recommended' },
@@ -46,6 +55,7 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
     };
 
     const startJoust = () => {
+        setHistory([]);
         setRounds(Math.log2(bracketSize));
         setCurrentRound(1);
         const bracketMovies:[ScoredMovie, ScoredMovie][] = bracketing(toBracketMovies);
@@ -73,13 +83,14 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
     }, [matchUp]);
 
     const joust = (winner:ScoredMovie) => {
+        setHistory(prev => [...prev, { bracketedMovies, winners, currentRound, rounds, finalWinner }]);
         if (currentRound === rounds) {
             setFinalWinner(winner);
             setRounds(0);
             setWinners([]);
             setCurrentRound(0);
         } else if (bracketedMovies && winners.length === bracketedMovies.length - 1) {
-            const updatedWinners = [...winners, winner]; 
+            const updatedWinners = [...winners, winner];
             setWinners([]);
             setCurrentRound(prev => prev + 1);
             const bracketMovies:[ScoredMovie, ScoredMovie][] = bracketing(updatedWinners);
@@ -87,6 +98,19 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
         } else {
             setWinners([...winners, winner]);
         }};
+
+    const undoJoust = () => {
+        setHistory(prev => {
+            if (prev.length === 0) return prev;
+            const last = prev[prev.length - 1];
+            setBracketedMovies(last.bracketedMovies);
+            setWinners(last.winners);
+            setCurrentRound(last.currentRound);
+            setRounds(last.rounds);
+            setFinalWinner(last.finalWinner);
+            return prev.slice(0, -1);
+        });
+    };
             
 
     return (
@@ -94,7 +118,8 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
         {currentRound === 0 && !finalWinner &&
         <div className='flex flex-col p-2'>
             <h2 className='text-center text-2xl font-bold mb-3'>Build Your Tournament</h2>
-            <p className='mb-2 text-lg underline-offset-6 underline'>Bracket Size</p>
+            <p className='text-sm text-left mb-3 max-w-xs mx-auto'>Pit your discovered movies in head-to-head matchups until one is declared the ultimate victor! Only the top movies from your choosen bracket size and sort are given the honor of dueling!</p>
+            <p className='mb-2 text-md font-bold underline-offset-6 underline'>Bracket Size</p>
             <div className='flex flex-wrap justify-center gap-2 mb-2'>
                 {bracketOptions.map(({value, label}) => (
                     <Button key={label} variant='weight' onClick={() => setBracketSize(value)} disabled={sortedMovies.length < value} disabledReason="JOUST_NOT_ENOUGH_MOVIES" aria-pressed={bracketSize === value} className={`hover:bg-black hover:text-white ${bracketSize === value ? 'bg-black text-white' : ''}`}>
@@ -106,7 +131,7 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
                 <p className='text-sm mb-3 max-w-xs mx-auto'>Not enough movies for this bracket size — try discovering more movies first.</p>
             )}
             <div className='my-2'>
-                <p className='mb-2 text-lg underline-offset-6 underline'>Sort by</p>
+                <p className='mb-2 text-md font-bold underline-offset-6 underline'>Sort by</p>
                     <div className='flex flex-wrap justify-center'>
                     {sortOptions.map(({ key, label }) => (
                     <Button key={key} variant='weight' onClick={() => setSortKey(key)} aria-pressed={sortKey === key} className={`hover:bg-black hover:text-white ${sortKey === key ? 'bg-black text-white' : ''}`}>{label}</Button>
@@ -124,14 +149,19 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
             <LoadingAnimation />
         )}
         {currentRound > 0 && matchUp && imagesReady && (
-        <div className='flex flex-col sm:flex-row items-center gap-3 px-4 pt-2'>
-            <div className='relative w-full max-w-44 sm:max-w-none sm:flex-1 sm:min-w-0 -mb-4 sm:mb-0' onMouseEnter={() => setHoveredCard(0)} onMouseLeave={() => setHoveredCard(null)}>
+        <>
+        {history.length > 0 && (
+            <Button variant='search' onClick={undoJoust} className='fixed bottom-3 left-1/2 -translate-x-1/2 z-60 bg-[#FCF8F9]'>Change your mind?</Button>
+        )}
+        <div className='flex flex-col sm:flex-row items-center gap-3 px-4 pt-1'>
+            <div className='relative w-full max-w-40 sm:max-w-none sm:flex-1 sm:min-w-0 -mb-6 sm:mb-0' onMouseEnter={() => setHoveredCard(0)} onMouseLeave={() => setHoveredCard(null)}>
                 <MovieCard
                     id={matchUp[0].id}
                     poster={matchUp[0].poster_path}
                     title={matchUp[0].title}
                     overview={matchUp[0].overview}
                     rating={matchUp[0].vote_average}
+                    voteCount={matchUp[0].vote_count}
                     releaseDate={matchUp[0].release_date}
                     onClick={() => joust(matchUp[0])}
                 />
@@ -140,13 +170,14 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
                 )}
             </div>
             <p className='text-2xl sm:text-5xl leading-none' aria-label="versus">vs</p>
-            <div className='relative w-full max-w-44 sm:max-w-none sm:flex-1 sm:min-w-0 -mt-2 sm:mt-0' onMouseEnter={() => setHoveredCard(1)} onMouseLeave={() => setHoveredCard(null)}>
+            <div className='relative w-full max-w-40 sm:max-w-none sm:flex-1 sm:min-w-0 -mt-4 sm:mt-0' onMouseEnter={() => setHoveredCard(1)} onMouseLeave={() => setHoveredCard(null)}>
                 <MovieCard
                     id={matchUp[1].id}
                     poster={matchUp[1].poster_path}
                     title={matchUp[1].title}
                     overview={matchUp[1].overview}
                     rating={matchUp[1].vote_average}
+                    voteCount={matchUp[1].vote_count}
                     releaseDate={matchUp[1].release_date}
                     onClick={() => joust(matchUp[1])}
                 />
@@ -155,6 +186,7 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
                 )}
             </div>
         </div>
+        </>
         )}
         {finalWinner &&
         <div className='flex flex-col items-center mt-16'>
@@ -166,12 +198,12 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
                     title={finalWinner.title}
                     overview={finalWinner.overview}
                     rating={finalWinner.vote_average}
+                    voteCount={finalWinner.vote_count}
                     releaseDate={finalWinner.release_date}
                 />
             </div>
-            <h2 className='text-2xl mt-5 underline underline-offset-5'>The Champion!</h2>
-            <p className='text-3xl mb-3'>{finalWinner.title}</p>
-
+            <h2 className='text-xl font-bold mt-5 mb-2 underline underline-offset-5'>The Champion!</h2>
+            <p className='text-xl text-center mb-3'>{finalWinner.title}</p>
         </div>
         }
     </div>

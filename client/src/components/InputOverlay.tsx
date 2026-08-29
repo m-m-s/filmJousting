@@ -34,8 +34,7 @@ export const InputOverlay = <T extends {id: string | number},>({options, selecte
                         onQueryChange?.(e.target.value);
                         }} />
                 <ComboboxOptions
-                    anchor="bottom start"
-                    className ="w-(--input-width) mt-1 border-3 bg-white shadow-lg max-h-60 overflow-y-auto z-60">
+                    className ="w-full mt-1 border-3 bg-white shadow-lg max-h-60 overflow-y-auto z-60">
                     {isLoading && (
                         <div className="px-3 py-2"><LoadingAnimation /></div>
                     )}

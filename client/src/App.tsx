@@ -287,7 +287,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       JOUST!
     </Button>
     </div>
-    <Modal isOpen={activeModal === 'joust'} onClose={() => setActiveModal(null)} align="center">
+    <Modal isOpen={activeModal === 'joust'} onClose={() => setActiveModal(null)} align="center" maxHeightClass="max-h-[92dvh]">
       <JoustParams movies={movies}/>
     </Modal>
     <Modal isOpen={isLoading && !loadingDismissed} onClose={() => setLoadingDismissed(true)} align="center">
@@ -312,8 +312,8 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 sm:gap-y-5">
-          {visibleMovies.map(m=> <MovieCard key={m.id} id={m.id} poster={m.poster_path} title={m.title} overview={m.overview} rating={m.vote_average} releaseDate={m.release_date}/>)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 sm:gap-y-5 sm:mx-2">
+          {visibleMovies.map(m=> <MovieCard key={m.id} id={m.id} poster={m.poster_path} title={m.title} overview={m.overview} rating={m.vote_average} voteCount={m.vote_count} releaseDate={m.release_date}/>)}
         </div>
           {totalPages > 1 && (
            <div className="flex gap-2 justify-center mt-5">

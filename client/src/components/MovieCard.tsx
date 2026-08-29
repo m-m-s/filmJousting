@@ -11,11 +11,12 @@ type MovieCardProps = {
     title: string;
     overview: string;
     rating: number;
+    voteCount?: number;
     releaseDate: number | string;
     onClick?: () => void;
 };
 
-export const MovieCard = ({id, poster, title, overview, rating, releaseDate, onClick}: MovieCardProps) => {
+export const MovieCard = ({id, poster, title, overview, rating, voteCount, releaseDate, onClick}: MovieCardProps) => {
     const [cardState, setCardState] = useState<boolean>(false);
     const [runtime, setRuntime] = useState<number | 'unavailable' | null>(null);
 
@@ -58,7 +59,7 @@ export const MovieCard = ({id, poster, title, overview, rating, releaseDate, onC
             </div>
 
             <Modal isOpen={cardState} onClose={() => setCardState(false)} align="center">
-                <div className="flex flex-col items-center gap-3 sm:m-5 max-w-md mx-auto">
+                <div className="flex flex-col items-center gap-3 px-2 py-2 sm:px-5 sm:py-5 max-w-md mx-auto">
                     <div className="flex items-center justify-center w-full gap-2">
                         <img src={sword} alt="" className="flex-1 min-w-0 w-full h-auto max-w-24 -scale-x-100" />
                         <img
@@ -70,9 +71,9 @@ export const MovieCard = ({id, poster, title, overview, rating, releaseDate, onC
                     </div>
                     <h1 className="text-xl font-bold">{title}</h1>
                     <div className="w-full flex flex-col items-start">
-                        <h2 className="text-md"><span className="font-bold">Rating</span> {rating === 0 ? 'N/A' : rating.toFixed(1)}</h2>
-                        <h2 className="text-md"><span className="font-bold">Length</span> {runtime === null ? 'Loading...' : runtime === 'unavailable' ? 'Unavailable' : formatMins(runtime)}</h2>
-                        <h2 className="text-md"><span className="font-bold">Released</span> {releaseDate === '' ? 'Coming Soon...' : formatDate(String(releaseDate))}</h2>
+                        <h2 className="text-md"><span className="font-bold pr-1">Rating</span> {rating === 0 ? 'N/A' : rating.toFixed(1)} {voteCount !== undefined && <sub>with {voteCount} votes</sub>}</h2>
+                        <h2 className="text-md"><span className="font-bold pr-1">Length</span> {runtime === null ? 'Loading...' : runtime === 'unavailable' ? 'Unavailable' : formatMins(runtime)}</h2>
+                        <h2 className="text-md"><span className="font-bold pr-1">Released</span> {releaseDate === '' ? 'Coming Soon...' : formatDate(String(releaseDate))}</h2>
                     </div>
                     <p className="drop-cap">{overview}</p>
                 </div>
