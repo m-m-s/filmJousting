@@ -70,12 +70,12 @@ export const MovieCard = ({id, poster, title, overview, rating, voteCount, relea
                         <img src={sword} alt="" className="flex-1 min-w-0 w-full h-auto max-w-24" />
                     </div>
                     <h1 className="text-xl font-bold">{title}</h1>
-                    <div className="w-full flex flex-col items-start">
+                    <div className="w-full flex flex-col items-start px-2">
                         <h2 className="text-md"><span className="font-bold pr-1">Rating</span> {rating === 0 ? 'N/A' : rating.toFixed(1)} {voteCount !== undefined && <sub>with {voteCount} votes</sub>}</h2>
                         <h2 className="text-md"><span className="font-bold pr-1">Length</span> {runtime === null ? 'Loading...' : runtime === 'unavailable' ? 'Unavailable' : formatMins(runtime)}</h2>
                         <h2 className="text-md"><span className="font-bold pr-1">Released</span> {releaseDate === '' ? 'Coming Soon...' : formatDate(String(releaseDate))}</h2>
                     </div>
-                    <p className="drop-cap">{overview}</p>
+                    <p className="drop-cap px-2">{overview}</p>
                 </div>
                 </Modal>
         </div>

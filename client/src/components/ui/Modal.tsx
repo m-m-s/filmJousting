@@ -118,7 +118,7 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
                     onClick={onClose}>x</button>
                 <div className={`
                     bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] border-3
-                    w-[88vw] bg-white px-5 pt-9 pb-9 ${maxHeightClass} overflow-y-auto overflow-x-hidden scrollbar-gutter-both md:w-[55vw] lg:max-w-[50vw]`}
+                    w-[88vw] bg-white px-8 pt-9 pb-9 ${maxHeightClass} overflow-y-auto overflow-x-hidden scrollbar-gutter-both md:w-[55vw] lg:max-w-[50vw]`}
                 style={heightOverrideStyle}
                 onClick={(e) => e.stopPropagation()}>
                     {children}

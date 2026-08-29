@@ -32,7 +32,7 @@ function App() {
   const [keywordSelect, setKeywordSelect] = useState<({ id: number; name: string }[])>([]);
   const [keywordQuery, setKeywordQuery] = useState<string>('');
   const [ratingRange, setRatingRange] = useState<[number, number]>([6,10])
-  const [runtimeRange, setRuntimeRange] = useState<[number, number]>([90,300]);
+  const [runtimeRange, setRuntimeRange] = useState<[number, number]>([90,180]);
   const [releaseDateRange, setReleaseDateRange] = useState<[number, number]>([1950,new Date().getFullYear()]);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [advFilterState, setAdvFilterState] = useState<boolean>(false);
@@ -73,7 +73,7 @@ function App() {
     setPeopleSelect([]);
     setPeopleQuery('');
     setRatingRange([6, 10]);
-    setRuntimeRange([90, 300]);
+    setRuntimeRange([90, 180]);
     setReleaseDateRange([1950, new Date().getFullYear()]);
     setObscure(false);
 };
