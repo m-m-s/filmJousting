@@ -10,7 +10,7 @@ import type { Options, SelectionState } from '@/types';
 
 export const WeightedFilterOverlay = ({options, selected, onSelect}:WeightedFilterOverlayProps) => {
 return (
-    <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(150px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+    <div className="grid gap-2 -mt-1 -mb-1 sm:mt-0 sm:mb-0 grid-cols-[repeat(auto-fit,minmax(150px,1fr))] lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
         {options.map((o) => {
             const state = selected[Number(o.id)];
             return (

@@ -21,31 +21,45 @@ body{
   background-color: #FCF8F9;
 }
 
-@keyframes flyInHoldFade {
-  0%   { opacity: 0; transform: translate(0, -70px); }
-  20%  { opacity: 1; transform: translate(0, 0); }
-  65%  { opacity: 1; transform: translate(0, 0); }
-  80%  { opacity: 0; transform: translate(0, 0); }
-  100% { opacity: 0; transform: translate(0, 0); }
+/* One shared 4.2s cycle (3 x 1.4s slots) instead of animation-delay,
+   since delay-based staggering re-syncs once the loop period is a
+   multiple of the delay — each dot bakes its own slot's offset directly
+   into its keyframe positions instead. */
+@keyframes loadingSequence1 {
+  0%     { opacity: 0; transform: translate(0, -70px); }
+  6.67%  { opacity: 1; transform: translate(0, 0); }
+  21.67% { opacity: 1; transform: translate(0, 0); }
+  33.33% { opacity: 0; transform: translate(0, 0); }
+  100%   { opacity: 0; transform: translate(0, 0); }
 }
 
-@keyframes flyInHoldExitLeftMirrored {
-  0%   { opacity: 0; transform: translate(0, -70px) scaleX(-1); }
-  20%  { opacity: 1; transform: translate(0, 0) scaleX(-1); }
-  65%  { opacity: 1; transform: translate(0, 0) scaleX(-1); }
-  100% { opacity: 0; transform: translate(-80px, 0) scaleX(-1); }
+@keyframes loadingSequence2 {
+  0%     { opacity: 0; transform: translate(0, 0); }
+  33.33% { opacity: 0; transform: translate(0, -70px); }
+  40%    { opacity: 1; transform: translate(0, 0); }
+  55%    { opacity: 1; transform: translate(0, 0); }
+  66.67% { opacity: 0; transform: translate(0, 0); }
+  100%   { opacity: 0; transform: translate(0, 0); }
+}
+
+@keyframes loadingSequence3Mirrored {
+  0%     { opacity: 0; transform: translate(0, 0) scaleX(-1); }
+  66.67% { opacity: 0; transform: translate(0, -70px) scaleX(-1); }
+  73.33% { opacity: 1; transform: translate(0, 0) scaleX(-1); }
+  88.33% { opacity: 1; transform: translate(0, 0) scaleX(-1); }
+  100%   { opacity: 0; transform: translate(-80px, 0) scaleX(-1); }
 }
 
 .loading-dot {
-  animation-duration: 1.4s;
+  animation-duration: 3.6s;
   animation-timing-function: cubic-bezier(.34, 1.56, .64, 1);
   animation-iteration-count: infinite;
   opacity: 0;
 }
 
-.loading-dot-1 { animation-name: flyInHoldFade; animation-delay: 0s; }
-.loading-dot-2 { animation-name: flyInHoldFade; animation-delay: 1.4s; }
-.loading-dot-3 { animation-name: flyInHoldExitLeftMirrored; animation-delay: 2.8s; }
+.loading-dot-1 { animation-name: loadingSequence1; }
+.loading-dot-2 { animation-name: loadingSequence2; }
+.loading-dot-3 { animation-name: loadingSequence3Mirrored; }
 
 * {
   scrollbar-color: black transparent;

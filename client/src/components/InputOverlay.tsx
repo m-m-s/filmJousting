@@ -21,7 +21,7 @@ export const InputOverlay = <T extends {id: string | number},>({options, selecte
         (!selected.some(s => (o.id === s.id))));
 
     return (
-        <div className="relative my-1 min-w-3xs">
+        <div className="relative my-1">
             <Combobox
                 value={selected}
                 onChange={onChange}

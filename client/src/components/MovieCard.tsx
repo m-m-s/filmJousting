@@ -54,12 +54,12 @@ export const MovieCard = ({id, poster, title, overview, rating, voteCount, relea
             </div>
             <div className='flex justify-end w-full -mt-1'>
             {onClick && (
-                <Button onClick={() => setCardState(true)} className='text-xs item-right no-underline hover:underline'>*Movie Details</Button>
+                <Button onClick={() => setCardState(true)} className='text-xs item-right no-underline hover:underline p-0'>*Movie Details</Button>
             )}
             </div>
 
             <Modal isOpen={cardState} onClose={() => setCardState(false)} align="center">
-                <div className="flex flex-col items-center gap-3 px-2 py-2 sm:px-5 sm:py-5 max-w-md mx-auto">
+                <div className="flex flex-col items-center gap-3 max-w-md mx-auto">
                     <div className="flex items-center justify-center w-full gap-2">
                         <img src={sword} alt="" className="flex-1 min-w-0 w-full h-auto max-w-24 -scale-x-100" />
                         <img

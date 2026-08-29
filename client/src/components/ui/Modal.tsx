@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import vineBlockTile from '../../assets/flowerOrnamentalBorder.svg';
 
 let openModalCount = 0;
@@ -30,9 +30,10 @@ type ModalProps = {
     children: React.ReactNode;
     align?: 'center' | 'top';
     maxHeightClass?: string;
+    topOffsetClass?: string;
 };
 
-export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass = 'max-h-[88dvh]'}: ModalProps) => {
+export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass = 'max-h-[88dvh]', topOffsetClass = 'mt-[30dvh]'}: ModalProps) => {
     useEffect(() => {
         if (!isOpen) return;
         openModalCount += 1;
@@ -78,19 +79,47 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
         };
     }, [isOpen]);
 
+    // On-screen keyboards don't reliably shrink CSS viewport units (dvh) —
+    // iOS Safari in particular overlays the keyboard rather than resizing
+    // the CSS viewport. window.visualViewport is the one thing every mobile
+    // browser actually updates when the keyboard opens, so that's what we
+    // watch to detect it and pull the modal up near the top while it's up.
+    const [keyboardOpen, setKeyboardOpen] = useState(false);
+    const [visibleHeight, setVisibleHeight] = useState<number | null>(null);
+    useEffect(() => {
+        if (!isOpen || !window.visualViewport) return;
+        const vv = window.visualViewport;
+        const checkKeyboard = () => {
+            const open = vv.height < window.innerHeight * 0.75;
+            setKeyboardOpen(open);
+            setVisibleHeight(open ? vv.height : null);
+        };
+        checkKeyboard();
+        vv.addEventListener('resize', checkKeyboard);
+        return () => {
+            vv.removeEventListener('resize', checkKeyboard);
+            setKeyboardOpen(false);
+            setVisibleHeight(null);
+        };
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
+    const effectiveTopOffsetClass = keyboardOpen ? 'mt-2' : topOffsetClass;
+    const heightOverrideStyle = keyboardOpen && visibleHeight ? { maxHeight: `${visibleHeight * 0.85}px` } : undefined;
+
     return(
-        <div 
+        <div
             className={`fixed inset-0 z-50 flex ${align === 'top' ? 'items-start' : 'items-center'} justify-center bg-black/90`}
             onClick={onClose}>
-            <div className={`relative ${align === 'top' ? 'mt-[30dvh]': ''}`}>
+            <div className={`relative ${align === 'top' ? effectiveTopOffsetClass : ''}`}>
                 <button
                     className={`bg-transparent text-[#FCF8F9] absolute right-0 -top-9 w-10 h-10 flex items-center justify-center text-2xl`}
                     onClick={onClose}>x</button>
                 <div className={`
                     bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] border-3
-                    w-[88vw] bg-white px-6 pt-9 pb-9 ${maxHeightClass} overflow-y-auto overflow-x-hidden scrollbar-gutter-both md:w-[55vw] lg:max-w-[50vw]`}
+                    w-[88vw] bg-white px-5 pt-9 pb-9 ${maxHeightClass} overflow-y-auto overflow-x-hidden scrollbar-gutter-both md:w-[55vw] lg:max-w-[50vw]`}
+                style={heightOverrideStyle}
                 onClick={(e) => e.stopPropagation()}>
                     {children}
                 </div>

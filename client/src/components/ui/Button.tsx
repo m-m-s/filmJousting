@@ -48,6 +48,7 @@ export const Button = ({children, onClick, variant = 'filter', disabled, disable
             )}
         >
             {children}
+            {variant === 'selected' && <span className="sm:hidden ml-1" aria-hidden="true">×</span>}
         </button>
     );
 };

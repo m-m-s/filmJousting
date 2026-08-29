@@ -151,9 +151,9 @@ export const JoustParams = ({ movies }: JoustParamProps) => {
         {currentRound > 0 && matchUp && imagesReady && (
         <>
         {history.length > 0 && (
-            <Button variant='search' onClick={undoJoust} className='fixed bottom-3 left-1/2 -translate-x-1/2 z-60 bg-[#FCF8F9]'>Change your mind?</Button>
+            <Button variant='search' onClick={undoJoust} className='fixed bottom-3 left-1/2 -translate-x-1/2 z-60 bg-[#F6F3EF]'>Change your mind?</Button>
         )}
-        <div className='flex flex-col sm:flex-row items-center gap-3 px-4 pt-1'>
+        <div className='flex flex-col sm:flex-row items-center gap-3 pt-1'>
             <div className='relative w-full max-w-40 sm:max-w-none sm:flex-1 sm:min-w-0 -mb-6 sm:mb-0' onMouseEnter={() => setHoveredCard(0)} onMouseLeave={() => setHoveredCard(null)}>
                 <MovieCard
                     id={matchUp[0].id}

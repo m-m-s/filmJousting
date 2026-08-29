@@ -20,6 +20,8 @@ import { MovieFetching } from './hooks/MovieFetching';
 import joustKnight from './assets/joustKnight.svg';
 import helmet from './assets/helmet.svg';
 import birdEmblem from './assets/emblem.svg';
+import discoverBorder from './assets/discoverBorder.svg';
+import joustBorder from './assets/joustBorder.svg';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState<string>(''); 
@@ -88,6 +90,10 @@ const resultsTopRef = useRef<HTMLDivElement>(null);
 const scrollSpacerRef = useRef<HTMLDivElement>(null);
 
 useEffect(() => {
+  setSortOverlay(false);
+}, [currentPage]);
+
+useEffect(() => {
   if (scrollSpacerRef.current) {
     scrollSpacerRef.current.style.height = '0px';
   }
@@ -112,6 +118,9 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
   return (
     <div className="w-[95%] sm:w-4/5 mx-auto flex flex-col items-center">
+      <link rel="preload" as="image" href={joustKnight} />
+      <link rel="preload" as="image" href={discoverBorder} />
+      <link rel="preload" as="image" href={joustBorder} />
       <div className="flex items-center justify-center gap-0 sm:gap-2 m-2">
         <img src={joustKnight} alt="" className="h-44 w-auto -my-8 -mr-10 -scale-x-100" />
         <h1 className="text-black-500 text-3xl sm:text-4xl font-bold text-center -mb-10">Film Jousting</h1>
@@ -139,7 +148,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           info={<span className="text-sm">{ratingRange[0]} - {ratingRange[1]}</span>}
           childern={
             <div>
-            <h1 className='text-center text-lg font-bold underline underline-offset-5'>Rating</h1>
+            <h1 className='text-center text-lg font-bold underline underline-offset-6'>Rating</h1>
             <SliderOverlay value={ratingRange} onValueChange={setRatingRange} min={0} max={10} step={.5} />
             </div>
           }
@@ -281,7 +290,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
     </div>
     <div className='flex flex-col items-center sm:flex-row sm:items-start justify-center mt-2 sm:gap-2'>
     <Button variant="primary" onClick={() => { setCurrentPage(1); setLoadingDismissed(false); discover(); }} disabled= {discoverParameters.genres.length === 0} disabledReason="DISCOVER_MISSING_GENRES" className='discover-border'>
-      {sortedMovies.length > 0 ? 'Re-Discover' : 'Discover'}
+      Discover
     </Button>
     <Button variant='primary' onClick={() => setActiveModal('joust')} disabled={movies.length <= 0} disabledReason="JOUST_NO_MOVIES" className='joust-border'>
       JOUST!
@@ -300,9 +309,9 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         <div className="flex justify-start">
         <Button variant="sort" className={sortOverlay === true ? 'underline underline-offset-5' : undefined} onClick={() => setSortOverlay(!sortOverlay)}>Sort</Button>
         </div>
-        <div className="flex justify-center mb-5">
+        <div className="flex justify-center">
         {sortOverlay &&
-        <div className='flex flex-wrap justify-start items-center gap-2 p-2 mt-2'>
+        <div className='flex flex-wrap justify-start items-center gap-2 p-2 mt-1 mb-2'>
           {sortOptions.map(({ key, label }) => (
           <Button key={key} variant="sort" onClick={() => setSortKey(key)} className={sortKey === key ? 'bg-black text-white' : ''}>{label}</Button>
           ))}
@@ -312,9 +321,14 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
         </div>
 
+        <hr className="border-t-2 border-black mb-3" />
+
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 sm:gap-y-5 sm:mx-2">
           {visibleMovies.map(m=> <MovieCard key={m.id} id={m.id} poster={m.poster_path} title={m.title} overview={m.overview} rating={m.vote_average} voteCount={m.vote_count} releaseDate={m.release_date}/>)}
         </div>
+
+        <hr className="border-t-2 border-black mt-3" />
+
           {totalPages > 1 && (
            <div className="flex gap-2 justify-center mt-5">
           <Button variant="sort" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>{'<'}</Button>
