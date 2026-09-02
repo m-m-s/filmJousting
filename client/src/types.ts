@@ -1,24 +1,17 @@
-interface Genre {
-  id: number;               // TMDB genre ID
-  name: string;
-}
-
+// Exactly what TMDB's /discover and /search return. Detail-only fields
+// (runtime, genre objects, countries, certification) come from /movie/{id}
+// and are deliberately absent rather than promised and never delivered.
 export interface Movie {
   id: number;
-  genre_ids: number[];
   title: string;
-  release_date: string;
-  poster_path: string;
-  genres: Genre[];
-  runtime: number;          // minutes
-  country: string[];        // origin countries (ISO codes)
-  original_language: string; // ISO 639-1 language code
-  rating: number;           // TMDB vote_average
-  vote_count: number;       // number of TMDB votes
-  vote_average: number;    
-  popularity: number;       // TMDB popularity score
   overview: string;
-  certification?: string;   // MPAA rating (G, PG, PG-13, R, NC-17)
+  release_date: string;      // '' when TMDB has no release date yet
+  poster_path: string | null; // null when the film has no artwork
+  genre_ids: number[];
+  original_language: string; // ISO 639-1 language code
+  popularity: number;        // TMDB's trending metric, unbounded
+  vote_average: number;
+  vote_count: number;
 }
 
 export interface ScoredMovie extends Movie {
@@ -67,6 +60,9 @@ export interface FilterCriteria {
 
   // Controls
   sortBy: 'popularity.desc' | 'vote_average.desc';
+  // Which ranked page to draw from; advances when Discover is pressed again
+  // with unchanged filters.
+  page?: number;
   filterForMe?: boolean;
 }
 

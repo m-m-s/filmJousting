@@ -109,14 +109,23 @@ export async function discoverMovies(filters: FilterCriteria) {
         delete params.with_original_language;
       }
 
-      const firstPage = await tmdbFetch('/discover/movie', {...params, page: '1'});
-      allMovies.push(...firstPage.results);
-      const totalPages = firstPage.total_pages;
+      // Discovering again with unchanged filters walks the ranked pages forward
+      // instead of returning page 1 every time.
+      const requested = Math.max(1, filters.page ?? 1);
+      let ranked = await tmdbFetch('/discover/movie', {...params, page: String(requested)});
+      const totalPages = ranked.total_pages;
+
+      // Past the end, wrap around rather than returning nothing.
+      if (ranked.results.length === 0 && totalPages > 0 && requested > totalPages) {
+        const wrapped = ((requested - 1) % Math.min(totalPages, 500)) + 1;
+        ranked = await tmdbFetch('/discover/movie', {...params, page: String(wrapped)});
+      }
+      allMovies.push(...ranked.results);
 
       if (totalPages > 3) {
         const randomPages = await fetchRandomPages('/discover/movie', params, totalPages, 3);
         allMovies.push(...randomPages);
-      } 
+      }
     }
   };
 

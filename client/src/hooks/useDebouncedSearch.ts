@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useErrorModal } from '../context/ErrorContext';
+import { useErrorModal } from '@/hooks/useErrorModal';
 import { getErrorCodeFromResponse } from '../lib/errorMessages';
 import { API_URL } from '../config';
 
+// Person and keyword results share id/name; only people carry a department.
+type SearchResult = {
+  id: number;
+  name: string;
+  known_for_department?: string;
+};
+
 export const useDebouncedSearch = (query: string, subject: 'person' | 'keyword') => {
-  const [options, setOptions] = useState<any[]>([]);
+  const [options, setOptions] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { showError } = useErrorModal();
 
@@ -41,7 +48,8 @@ export const useDebouncedSearch = (query: string, subject: 'person' | 'keyword')
         clearTimeout(timeoutId);
         controller.abort();
       };
-    }, [query]);
+      // showError is useCallback'd in the provider, so listing it is safe.
+    }, [query, subject, showError]);
 
     return { options, isLoading };
 };

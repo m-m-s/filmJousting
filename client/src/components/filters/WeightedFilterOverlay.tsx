@@ -1,5 +1,5 @@
-import { Button } from './ui/Button';
-import helmet from '../assets/helmet.svg';
+import { Button } from '@/components/ui/Button';
+import helmet from '@/assets/helmet.svg';
 import type { Options, SelectionState } from '@/types';
 
  type WeightedFilterOverlayProps = {
@@ -22,7 +22,7 @@ return (
                     <div className="group relative flex flex-1 items-center justify-center w-min max-w-28 mx-auto">
                         <img src={helmet} alt="" className={`absolute right-full mr-0.5 h-6 w-auto transition duration-300 pointer-events-none ${state === 'veto' ? 'opacity-100 -scale-x-100' : state !== undefined ? 'opacity-100 group-hover:-scale-x-100 group-has-[.veto-trigger:hover]/veto:-scale-x-100' : 'opacity-0 group-hover:opacity-100 -scale-x-100'}`} />
                         <Button
-                            className={`flex-1 flex items-center justify-center ${state === undefined ? 'no-underline' : ''}`}
+                            className={`flex-1 flex items-center justify-center ${state === undefined ? 'no-underline' : ''} ${state === 'veto' ? 'line-through' : ''}`}
                             onClick={() => onSelect(Number(o.id), state === undefined ? 'yes': undefined)}>
                                 {o.name}
                             </Button>

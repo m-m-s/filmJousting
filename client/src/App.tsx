@@ -1,30 +1,32 @@
-import { useState, useEffect, useRef } from 'react';
-import { WeightedFilterOverlay } from './components/WeightedFilterOverlay';
-import { GENRES } from './data/genres'
-import { LANGUAGES } from './data/languages';
-import type { SortKey, SortDirection, SelectionState, FilterCriteria } from './types';
-import { InputOverlay } from './components/InputOverlay';
-import { SliderOverlay } from './components/SliderOverlay';
-import { Button } from './components/ui/Button';
-import { useDebouncedSearch } from './hooks/useDebouncedSearch';
-import { Modal } from './components/ui/Modal'
-import { MovieCard } from './components/MovieCard';
-import { formatMins } from './lib/utils'
-import { makeSelectionHandler , genreSplit, sortMovies } from './lib/filters';
-import { JoustParams } from './components/JoustParam';
-import { FilterButton } from './components/FilterButton';
-import { LoadingAnimation } from './components/LoadingAnimation';
-import { VineDivider } from './components/VineDivider';
-import { AboutFooter } from './components/AboutFooter';
-import { MovieFetching } from './hooks/MovieFetching';
-import joustKnight from './assets/joustKnight.svg';
-import helmet from './assets/helmet.svg';
-import birdEmblem from './assets/emblem.svg';
-import discoverBorder from './assets/discoverBorder.svg';
-import joustBorder from './assets/joustBorder.svg';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { WeightedFilterOverlay } from '@/components/filters/WeightedFilterOverlay';
+import { GENRES } from '@/data/genres'
+import { LANGUAGES } from '@/data/languages';
+import type { SortKey, SortDirection, SelectionState, FilterCriteria, ScoredMovie } from '@/types';
+import { InputOverlay } from '@/components/filters/InputOverlay';
+import { SliderOverlay } from '@/components/filters/SliderOverlay';
+import { Button } from '@/components/ui/Button';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
+import { Modal } from '@/components/ui/Modal'
+import { MovieCard } from '@/components/movies/MovieCard';
+import { CompactMovieList } from '@/components/movies/CompactMovieList';
+import { formatMins } from '@/lib/utils'
+import { makeSelectionHandler , genreSplit, sortMovies, dropMostPopular } from '@/lib/filters';
+import { scoreMovies } from '@/lib/scoring';
+import { Joust } from '@/components/joust/Joust';
+import { FilterButton } from '@/components/filters/FilterButton';
+import { LoadingAnimation } from '@/components/ui/LoadingAnimation';
+import { VineDivider } from '@/components/ui/VineDivider';
+import { AboutFooter } from '@/components/AboutFooter';
+import { MovieFetching } from '@/hooks/MovieFetching';
+import joustKnight from '@/assets/joustKnight.svg';
+import helmet from '@/assets/helmet.svg';
+import birdEmblem from '@/assets/emblem.svg';
+import discoverBorder from '@/assets/discoverBorder.svg';
+import joustBorder from '@/assets/joustBorder.svg';
 
 function App() {
-  const [searchQuery, setSearchQuery] = useState<string>(''); 
+  const [listUrls, setListUrls] = useState<string[]>(['']);
   const [genreSelect, setGenreSelect] = useState<Record<number, SelectionState>>({});
   const [languageSelect, setLanguageSelect] = useState<({ id: string; name: string }[])>([]);;
   const [peopleSelect, setPeopleSelect] = useState<({ id: number; department: string, name: string }[])>([]);
@@ -35,11 +37,16 @@ function App() {
   const [runtimeRange, setRuntimeRange] = useState<[number, number]>([90,180]);
   const [releaseDateRange, setReleaseDateRange] = useState<[number, number]>([1950,new Date().getFullYear()]);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [joustInProgress, setJoustInProgress] = useState<boolean>(false);
   const [advFilterState, setAdvFilterState] = useState<boolean>(false);
   const [obscure, setObscure] = useState<boolean>(false);
+  const [excludePopular, setExcludePopular] = useState<boolean>(false);
   const [sortKey, setSortKey] = useState<SortKey>('score');
   const [sortDirection, setSortDirection] = useState<SortDirection>('descending');
   const [sortOverlay, setSortOverlay] = useState<boolean>(false);
+  const [compactView, setCompactView] = useState<boolean>(false);
+  const [pinnedMovies, setPinnedMovies] = useState<ScoredMovie[] | null>(null);
+  const [pinnedLabel, setPinnedLabel] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const { options: peopleOptionsRaw, isLoading: peopleLoading } = useDebouncedSearch(peopleQuery, 'person');
@@ -49,7 +56,9 @@ function App() {
 
   const { options: keywordOptions, isLoading: keywordLoading } = useDebouncedSearch(keywordQuery, 'keyword');
 
-  const discoverParameters: FilterCriteria = {
+  // Memoized: scoring reads this during render, so it needs a stable identity
+  // for the dependency comparison below to work.
+  const discoverParameters: FilterCriteria = useMemo(() => ({
     ...genreSplit(genreSelect),
     languages: languageSelect.map(String),
     keywords: keywordSelect.map(k => k.id),
@@ -60,9 +69,16 @@ function App() {
     releaseYearRange: { from: releaseDateRange[0], to: releaseDateRange[1] },
     obscure,
     sortBy: 'popularity.desc'
-  };
+  }), [genreSelect, languageSelect, keywordSelect, peopleSelect, ratingRange, runtimeRange, releaseDateRange, obscure]);
 
-  const {movies, isLoading, discover, listScraping} = MovieFetching({searchQuery, discoverParameters, sortKey, sortDirection});
+  const {movies, isLoading, discover, listScraping} = MovieFetching({listUrls, discoverParameters});
+
+  const updateListUrl = (index: number, value: string) =>
+    setListUrls(prev => prev.map((url, i) => (i === index ? value : url)));
+  const addListUrl = () => setListUrls(prev => [...prev, '']);
+  const removeListUrl = (index: number) =>
+    setListUrls(prev => prev.filter((_, i) => i !== index));
+  const hasListUrl = listUrls.some(url => url.trim());
   const [loadingDismissed, setLoadingDismissed] = useState(false);
 
   const resetFilters = () => {
@@ -76,6 +92,7 @@ function App() {
     setRuntimeRange([90, 180]);
     setReleaseDateRange([1950, new Date().getFullYear()]);
     setObscure(false);
+    setExcludePopular(false);
 };
 
 const sortOptions: {key: SortKey, label: string}[] =[
@@ -89,9 +106,28 @@ const sortOptions: {key: SortKey, label: string}[] =[
 const resultsTopRef = useRef<HTMLDivElement>(null);
 const scrollSpacerRef = useRef<HTMLDivElement>(null);
 
-useEffect(() => {
+// Discovering again on unchanged filters walks forward a page; changing any
+// filter starts over at page 1.
+const lastDiscoverRef = useRef<string | null>(null);
+const discoverPageRef = useRef(1);
+
+const handleDiscover = () => {
+  const filterKey = JSON.stringify(discoverParameters);
+  if (filterKey === lastDiscoverRef.current) {
+    discoverPageRef.current += 1;
+  } else {
+    lastDiscoverRef.current = filterKey;
+    discoverPageRef.current = 1;
+  }
+  setCurrentPage(1);
+  setLoadingDismissed(false);
+  discover(discoverPageRef.current);
+};
+
+const goToPage = (page: number) => {
+  setCurrentPage(page);
   setSortOverlay(false);
-}, [currentPage]);
+};
 
 useEffect(() => {
   if (scrollSpacerRef.current) {
@@ -105,9 +141,6 @@ useEffect(() => {
   }
   resultsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // The spacer only needs to exist long enough for the smooth scroll above
-  // to have room to complete — collapse it once scrolling settles so it
-  // doesn't linger as dead space at the bottom of the page.
   const collapseSpacer = () => {
     if (scrollSpacerRef.current) scrollSpacerRef.current.style.height = '0px';
   };
@@ -119,18 +152,24 @@ useEffect(() => {
   };
 }, [currentPage, movies]);
 
-const sortedMovies = sortMovies(movies, sortKey, sortDirection);
+// Client-side so a toggle re-ranks without a re-fetch.
+const resultPool = useMemo(() => {
+  const scored = scoreMovies(movies, discoverParameters);
+  return excludePopular ? dropMostPopular(scored) : scored;
+}, [movies, excludePopular, discoverParameters]);
+
+const sortedMovies = sortMovies(resultPool, sortKey, sortDirection);
 const pageSize = 20;
 const visibleMovies= sortedMovies.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 const totalPages = Math.ceil(sortedMovies.length / pageSize);
 const maxPageButtons = 5;
 let pageWindowStart = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
-let pageWindowEnd = Math.min(totalPages, pageWindowStart + maxPageButtons - 1);
+const pageWindowEnd = Math.min(totalPages, pageWindowStart + maxPageButtons - 1);
 pageWindowStart = Math.max(1, pageWindowEnd - maxPageButtons + 1);
 const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, (_,i) => pageWindowStart + i);
 
   return (
-    <div className="w-[95%] sm:w-4/5 mx-auto flex flex-col items-center">
+    <div className={`${compactView ? 'w-full px-2' : 'w-[95%] sm:w-4/5'} mx-auto flex flex-col items-center`}>
       <link rel="preload" as="image" href={joustKnight} />
       <link rel="preload" as="image" href={discoverBorder} />
       <link rel="preload" as="image" href={joustBorder} />
@@ -141,7 +180,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       </div>
       <VineDivider className="mt-0 mb-2" />
       <div className="flex flex-col items-center gap-3">
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-x-10 gap-y-2 mx-5 md:mb-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-10 gap-y-2 mx-5 md:mb-2 sm:gap-x-8 sm:gap-y-3">
         <FilterButton name={'Genres'} isOpen={activeModal === 'genre'} clickAction={() => setActiveModal('genre')} onClose={() => setActiveModal(null)} align={'center'}
         info={
               Object.keys(genreSelect).length === 0
@@ -283,44 +322,99 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       />
       Include extremely obscure / hidden gems
     </label>
+
+    <label className="flex items-center gap-2 text-sm sm:text-lg cursor-pointer mb-3 sm:mb-0">
+      <input
+        type="checkbox"
+        checked={excludePopular}
+        onChange={(e) => setExcludePopular(e.target.checked)}
+        className={`appearance-none w-4 h-4 rounded-full bg-[#FCF8F9] bg-contain bg-no-repeat bg-center cursor-pointer ${excludePopular ? '' : 'border-2 border-black'}`}
+        style={{ backgroundImage: excludePopular ? `url(${birdEmblem})` : 'none' }}
+      />
+      Exclude the most popular films
+    </label>
+
   </div>
   }
   </div>
 
   <VineDivider className="mt-0 mb-6" />
 
-    <div className='flex flex-col items-center md:flex-row'>
-      <span className="whitespace-nowrap">Search within a Letterboxd List: </span>
-      <div className="flex items-center w-full max-w-xs sm:max-w-sm">
-      <input
-        className = "flex-1 min-w-0 border-3 border-black mx-2 my-2 px-2 py-1  bg-white text-black focus:outline-none fous:ring-2 focus:ring-red-500"
-        value = {searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="https://letterboxd.com/official/list/letterboxds-top-500-films/"
-      />
-      <Button variant="search" onClick={() => { setCurrentPage(1); setLoadingDismissed(false); listScraping(); }} disabled={!searchQuery.trim()} disabledReason="SEARCH_MISSING_QUERY">Search</Button>
+    <div className='flex flex-col items-center md:flex-row md:items-start'>
+      <span className="flex items-center whitespace-nowrap md:mt-2">
+        Search within Letterboxd
+        <Button variant="sort" onClick={() => setActiveModal('letterboxdHelp')} aria-label="About Letterboxd list search" className="font-bold px-3 min-w-11 min-h-11">?</Button>
+      </span>
+      <div className="flex flex-col w-full max-w-sm sm:max-w-lg">
+        {listUrls.map((url, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <input
+            className = "flex-1 min-w-0 border-3 border-black my-2 px-2 py-1 bg-white text-black focus:outline-none fous:ring-2 focus:ring-red-500"
+            value = {url}
+            onChange={(e) => updateListUrl(index, e.target.value)}
+            aria-label={`Letterboxd list URL or username ${index + 1}`}
+            placeholder="List URL or Username"
+          />
+          {index === 0 ? (
+          <>
+            <Button variant="search" onClick={addListUrl} aria-label="Add another list" className="font-bold -mx-1 px-2">+</Button>
+            <Button variant="search" onClick={() => { setCurrentPage(1); setLoadingDismissed(false); listScraping(); }} disabled={!hasListUrl || discoverParameters.genres.length === 0} disabledReason={!hasListUrl ? 'SEARCH_MISSING_QUERY' : 'SEARCH_MISSING_GENRES'}>Search</Button>
+          </>
+          ) : (
+            <Button variant="sort" onClick={() => removeListUrl(index)} aria-label="Remove this list">×</Button>
+          )}
+        </div>
+        ))}
+      </div>
     </div>
-    </div>
+
+    <Modal isOpen={activeModal === 'letterboxdHelp'} onClose={() => setActiveModal(null)} align="center" label="About Letterboxd list search">
+      <div className="flex flex-col gap-3">
+        <h1 className="text-2xl font-bold text-center">Letterboxd Lists</h1>
+        <p>Paste a link to any Letterboxd list. A watchlist, a ranked top 100, a themed collection or more! Your filters and our custom scoring will be applied to the films on that list instead of searching all of TMDB.</p>
+        <p>Or just type a Letterboxd username on its own and we'll search that person's watchlist.</p>
+        <p>Add more than one list to draw from all of them at once. Built for finding a movie to watch from both your watchlist and/or a friend's.</p>
+      </div>
+    </Modal>
     <div className='flex flex-col items-center sm:flex-row sm:items-start justify-center mt-2 sm:gap-2'>
-    <Button variant="primary" onClick={() => { setCurrentPage(1); setLoadingDismissed(false); discover(); }} disabled= {discoverParameters.genres.length === 0} disabledReason="DISCOVER_MISSING_GENRES" className='discover-border'>
+    <Button variant="primary" onClick={handleDiscover} disabled= {discoverParameters.genres.length === 0} disabledReason="DISCOVER_MISSING_GENRES" className='discover-border'>
       Discover
     </Button>
     <Button variant='primary' onClick={() => setActiveModal('joust')} disabled={movies.length <= 0} disabledReason="JOUST_NO_MOVIES" className='joust-border'>
       JOUST!
     </Button>
     </div>
-    <Modal isOpen={activeModal === 'joust'} onClose={() => setActiveModal(null)} align="center" maxHeightClass="max-h-[92dvh]">
-      <JoustParams movies={movies}/>
+    <Modal
+      isOpen={activeModal === 'joust'}
+      onClose={() => { setActiveModal(null); setJoustInProgress(false); }}
+      align="center"
+      maxHeightClass="max-h-[92dvh]"
+      label="Joust"
+      confirmCloseMessage={joustInProgress ? 'Leaving now loses your bracket!' : undefined}>
+      <Joust movies={resultPool} onInProgressChange={setJoustInProgress}/>
     </Modal>
-    <Modal isOpen={isLoading && !loadingDismissed} onClose={() => setLoadingDismissed(true)} align="center">
+    <Modal isOpen={isLoading && !loadingDismissed} onClose={() => setLoadingDismissed(true)} align="center" label="Finding films" historyEntry={false}>
       <LoadingAnimation />
     </Modal>
 
     <div>
     {movies.length > 0 &&
       <div className='mt-5' ref={resultsTopRef}>
-        <div className="flex justify-start">
+        <div className="flex justify-start items-center gap-2">
         <Button variant="sort" className={sortOverlay === true ? 'underline underline-offset-5' : undefined} onClick={() => setSortOverlay(!sortOverlay)}>Sort</Button>
+        {import.meta.env.DEV && (
+        <Button variant="sort" className={compactView === true ? 'underline underline-offset-5' : undefined} onClick={() => setCompactView(!compactView)}>{compactView ? 'Card View' : 'Compact View'}</Button>
+        )}
+        {import.meta.env.DEV && compactView && (
+        <Button variant="sort" onClick={() => {
+          setPinnedMovies(sortedMovies);
+          setPinnedLabel(`${sortOptions.find(o => o.key === sortKey)?.label ?? sortKey} ${sortDirection === 'descending' ? '↓' : '↑'}${excludePopular ? ' · no-pop' : ''}`);
+        }}>Pin</Button>
+        )}
+        {import.meta.env.DEV && compactView && pinnedMovies && (
+        <Button variant="sort" onClick={() => setPinnedMovies(null)}>Unpin</Button>
+        )}
+        <span className="ml-auto self-end p-2 text-xs whitespace-nowrap">Discover again to go deeper</span>
         </div>
         <div className="flex justify-center">
         {sortOverlay &&
@@ -328,7 +422,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           {sortOptions.map(({ key, label }) => (
           <Button key={key} variant="sort" onClick={() => setSortKey(key)} className={sortKey === key ? 'bg-black text-white' : ''}>{label}</Button>
           ))}
-          <Button variant="sort" onClick={() => setSortDirection(sortDirection === 'descending' ? 'ascending' : 'descending')}>{sortDirection === 'descending' ? '↑' : '↓'}</Button>
+          <Button variant="sort" aria-label={sortDirection === 'descending' ? 'Sort ascending' : 'Sort descending'} onClick={() => setSortDirection(sortDirection === 'descending' ? 'ascending' : 'descending')}>{sortDirection === 'descending' ? '↑' : '↓'}</Button>
         </div>
         }
 
@@ -336,6 +430,25 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
         <hr className="border-t-2 border-black mb-3" />
 
+        {/* DEV is inlined as false in production, so this branch is dropped from
+            the bundle rather than just being unreachable. */}
+        {import.meta.env.DEV && compactView ? (
+          pinnedMovies ? (
+          <div className="flex gap-4 items-start">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold mb-1">Pinned — {pinnedLabel}</p>
+              <CompactMovieList movies={pinnedMovies} selectedGenres={discoverParameters.genres} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold mb-1">Current — {sortOptions.find(o => o.key === sortKey)?.label ?? sortKey} {sortDirection === 'descending' ? '↓' : '↑'}{excludePopular ? ' · no-pop' : ''}</p>
+              <CompactMovieList movies={sortedMovies} selectedGenres={discoverParameters.genres} />
+            </div>
+          </div>
+          ) : (
+          <CompactMovieList movies={sortedMovies} selectedGenres={discoverParameters.genres} />
+          )
+        ) : (
+        <>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 sm:gap-y-5 sm:mx-2">
           {visibleMovies.map(m=> <MovieCard key={m.id} id={m.id} poster={m.poster_path} title={m.title} overview={m.overview} rating={m.vote_average} voteCount={m.vote_count} releaseDate={m.release_date}/>)}
         </div>
@@ -344,24 +457,26 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
           {totalPages > 1 && (
            <div className="flex gap-2 justify-center mt-5">
-          <Button variant="sort" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>{'<'}</Button>
+          <Button variant="sort" aria-label="Previous page" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>{'<'}</Button>
           {pageWindowStart > 1 && (
             <>
-              <Button onClick={() => setCurrentPage(1)} variant="sort">1</Button>
+              <Button onClick={() => goToPage(1)} variant="sort">1</Button>
               <span className="self-end">...</span>
             </>
           )}
           {pageNumbers.map(num =>
-            (<Button key= {num} onClick={()=> setCurrentPage(num)} variant="sort" className={num === currentPage ? 'text-2xl px-3 py-1 bg-black text-white' : ''}>{num}</Button>
+            (<Button key= {num} onClick={()=> goToPage(num)} variant="sort" className={num === currentPage ? 'text-2xl px-3 py-1 bg-black text-white' : ''}>{num}</Button>
         ))}
           {pageWindowEnd < totalPages && (
             <>
               <span className="self-end">...</span>
-              <Button onClick={() => setCurrentPage(totalPages)} variant="sort">{totalPages}</Button>
+              <Button onClick={() => goToPage(totalPages)} variant="sort">{totalPages}</Button>
             </>
           )}
-          <Button variant="sort" onClick={()=> setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>{'>'}</Button>
+          <Button variant="sort" aria-label="Next page" onClick={()=> goToPage(currentPage + 1)} disabled={currentPage === totalPages}>{'>'}</Button>
         </div>
+        )}
+        </>
         )}
       </div>
       }

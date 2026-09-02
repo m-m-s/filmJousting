@@ -1,4 +1,4 @@
-import lionVineBlock from '../assets/lionVineBlock.svg';
+import lionVineBlock from '@/assets/lionVineBlock.svg';
 
 type VineDividerProps = {
     className?: string;

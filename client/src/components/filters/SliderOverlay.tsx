@@ -1,5 +1,5 @@
 import * as Slider from '@radix-ui/react-slider';
-import dragonEnd from '../assets/dragonEnd.svg';
+import dragonEnd from '@/assets/dragonEnd.svg';
 
 type SliderOverlayProps = {
     value: [number, number];
@@ -14,7 +14,7 @@ export const SliderOverlay = ({ value, onValueChange, min, max, step, formatValu
 
     
     return (
-        <div className="mt-13 px-3 md:min-w-[40vw]">
+        <div className="w-full mt-13 px-3 md:min-w-[40vw]">
             <Slider.Root
                 className="relative flex items-center w-full h-5 pt-4 touch-none"
                 value={value}

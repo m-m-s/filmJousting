@@ -1,7 +1,7 @@
 import { Router, type Response } from 'express';
 import { getGenres, searchTMDB, discoverMovies, getMovieDetails } from '../services/tmdbService.js';
 import { scrapeLetterboxd, scrapedMovieDetail } from '../services/letterboxdService.js';
-import { movieFilter } from '../services/scoringEngine.js';
+import { deDuplicate } from '../services/utils.js';
 import { AppError, type ErrorCode } from '../errors.js';
 
 const router = Router();
@@ -76,8 +76,9 @@ router.post('/discover', async (req, res) => {
       return;
     }
     const results = await discoverMovies(filters);
-    const sortedResults = movieFilter(results, filters);
-    res.json(sortedResults);
+    // Scoring and sorting are the client's job; de-duplication belongs here
+    // because it stitches together the multi-page fetch above.
+    res.json(deDuplicate(results));
   } catch (error) {
     sendError(res, error, 'DISCOVER_FAILED', 'Failed to discover movies');
   }
@@ -85,19 +86,23 @@ router.post('/discover', async (req, res) => {
 
 router.post('/letterboxdList', async (req, res) => {
   try {
-    const { listUrl, filters } = req.body;
-    if (!listUrl || !filters) {
-      res.status(400).json({ error: { code: 'LETTERBOXD_MISSING_PARAMS', message: 'listUrl and filters are required' } });
+    const { listUrl, listUrls } = req.body;
+    const urls: string[] = (Array.isArray(listUrls) ? listUrls : [listUrl])
+      .filter((url): url is string => typeof url === 'string' && url.trim().length > 0);
+
+    if (urls.length === 0) {
+      res.status(400).json({ error: { code: 'LETTERBOXD_MISSING_PARAMS', message: 'At least one list URL is required' } });
       return;
     }
-    const titles = await scrapeLetterboxd(listUrl);
+
+    const scraped = await Promise.all(urls.map(url => scrapeLetterboxd(url)));
+    const titles = [...new Set(scraped.flat())];
     const movieList = await scrapedMovieDetail(titles);
     if (movieList.length === 0) {
       res.status(404).json({ error: { code: 'LETTERBOXD_NO_MATCHES', message: `Found ${titles.length} titles on the list but none matched a TMDB movie` } });
       return;
     }
-    const sortedMovies = movieFilter(movieList, filters);
-    res.json(sortedMovies);
+    res.json(deDuplicate(movieList));
   } catch (error) {
     sendError(res, error, 'LETTERBOXD_FAILED', 'Failed to scrape Letterboxd list');
   }

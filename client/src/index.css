@@ -10,6 +10,14 @@
   --font-dropcap: 'Romantik', serif;
 }
 
+/* The header knights are wider than a narrow phone; clip them rather than
+   letting the page slide sideways. Both elements need it — with only body set,
+   html still scrolls the viewport. */
+html,
+body {
+  overflow-x: hidden;
+}
+
 body{
   overflow-x: hidden;
   padding: clamp(12px, 5vw, 50px);
@@ -130,4 +138,26 @@ body{
     -1px  1px 0 #FCF8F9,
      1px  1px 0 #FCF8F9,
      0 0 6px #FCF8F9;
+}
+
+/* The crown bobs above the winning card, as though hovering there.
+   Deliberately no translateX here: Tailwind v4 compiles -translate-x-1/2 to the
+   standalone `translate` property, not to `transform`. The two are separate
+   properties that both apply, so repeating the centering in this keyframe would
+   shift the crown left by half its width on top of the class already doing it. */
+@keyframes crownFloat {
+  0%   { transform: translateY(0)    rotate(-5deg); }
+  50%  { transform: translateY(-7px) rotate(5deg); }
+  100% { transform: translateY(0)    rotate(-5deg); }
+}
+
+.crown-float {
+  animation: crownFloat 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crown-float {
+    animation: none;
+  }
 }

@@ -1,5 +1,5 @@
-import knight1 from '../assets/knightOnHorse1.svg';
-import knight2 from '../assets/knightOnHorse2.svg';
+import knight1 from '@/assets/knightOnHorse1.svg';
+import knight2 from '@/assets/knightOnHorse2.svg';
 
 export const LoadingAnimation = () => {
     return (

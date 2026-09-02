@@ -1,30 +1,28 @@
 import { useState } from 'react'
-import type { FilterCriteria, SortKey, SortDirection } from "@/types";
-import { sortMovies } from '@/lib/filters';
-import { useErrorModal } from '../context/ErrorContext';
+import type { FilterCriteria, Movie } from "@/types";
+import { useErrorModal } from '@/hooks/useErrorModal';
 import { getErrorCodeFromResponse } from '../lib/errorMessages';
 import { API_URL } from '../config';
 
 type MovieFetchingProps = {
-    sortKey: SortKey;
-    sortDirection: SortDirection;
-    searchQuery:String;
+    listUrls: string[];
     discoverParameters:FilterCriteria;
 };
 
-export const MovieFetching = ({sortKey, sortDirection, searchQuery, discoverParameters}: MovieFetchingProps) => {
-    const [movies, setMovies] = useState<any[]>([]);
+// Returns raw movies; scoring and sorting happen downstream.
+export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps) => {
+    const [movies, setMovies] = useState<Movie[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const { showError } = useErrorModal();
 
-    const discover = async () => {
+    const discover = async (page = 1) => {
     setIsLoading(true);
     try {
         const response = await fetch(`${API_URL}/api/tmdb/discover`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json' },
         body: JSON.stringify(
-            discoverParameters
+            { ...discoverParameters, page }
         )
         });
         if (!response.ok) {
@@ -36,7 +34,7 @@ export const MovieFetching = ({sortKey, sortDirection, searchQuery, discoverPara
         if (data.length === 0) {
           showError('NO_RESULTS');
         }
-        setMovies(sortMovies(data, sortKey, sortDirection));
+        setMovies(data);
         } catch (error) {
         showError('NETWORK_UNREACHABLE', error);
     } finally {
@@ -47,13 +45,14 @@ export const MovieFetching = ({sortKey, sortDirection, searchQuery, discoverPara
     const listScraping = async () => {
       setIsLoading(true);
       try {
+        const urls = listUrls.filter(url => url.trim());
         const response = await fetch(`${API_URL}/api/tmdb/letterboxdList`, {
           method: 'POST',
           headers: { 'Content-Type' : 'application/json' },
-          body: JSON.stringify({
-            listUrl: searchQuery,
-            filters: discoverParameters
-          })
+          // listUrl and filters are only here for a server that predates
+          // multi-list support, so the two deploys can land in any order.
+          // Safe to drop once the server is live.
+          body: JSON.stringify({ listUrls: urls, listUrl: urls[0], filters: discoverParameters })
         });
         if (!response.ok) {
           const code = await getErrorCodeFromResponse(response);
@@ -64,7 +63,7 @@ export const MovieFetching = ({sortKey, sortDirection, searchQuery, discoverPara
         if (data.length === 0) {
           showError('NO_RESULTS');
         }
-        setMovies(sortMovies(data, sortKey, sortDirection));
+        setMovies(data);
       } catch (error) {
         showError('NETWORK_UNREACHABLE', error);
       } finally {

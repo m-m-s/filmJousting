@@ -30,6 +30,20 @@
     return {genres , vetoedGenres};
   }
 
+  export const median = (nums: number[]) => {
+    if (nums.length === 0) return 0;
+    const sorted = [...nums].sort((a, b) => a - b);
+    return sorted[Math.floor(sorted.length / 2)];
+  };
+
+  // Drops the top 20% by popularity. TMDB's discover endpoint has no popularity
+  // filter, so this has to be a cut on the returned results.
+  export const dropMostPopular = <T extends { popularity: number }>(pool: T[]): T[] => {
+    if (pool.length === 0) return pool;
+    const cutoff = pool.map(m => m.popularity).sort((a, b) => a - b)[Math.floor(pool.length * 0.8)];
+    return pool.filter(m => m.popularity <= cutoff);
+  };
+
    export const sortMovies = (movies:ScoredMovie[], key: SortKey, direction: SortDirection): ScoredMovie[] => {
     return movies.toSorted((a,b) => {
       if (key === 'title') {

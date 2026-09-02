@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import type { Options } from "../types"
+import type { Options } from "@/types"
 import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption} from '@headlessui/react';
-import { LoadingAnimation } from './LoadingAnimation';
+import { LoadingAnimation } from '@/components/ui/LoadingAnimation';
 
 type InputOverlayProps<T extends {id: string | number}> = {
     options: Options[];
