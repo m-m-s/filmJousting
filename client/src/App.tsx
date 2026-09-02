@@ -17,7 +17,7 @@ import { Joust } from '@/components/joust/Joust';
 import { FilterButton } from '@/components/filters/FilterButton';
 import { LoadingAnimation } from '@/components/ui/LoadingAnimation';
 import { VineDivider } from '@/components/ui/VineDivider';
-import { AboutFooter } from '@/components/AboutFooter';
+import { About } from '@/components/About';
 import { MovieFetching } from '@/hooks/MovieFetching';
 import joustKnight from '@/assets/joustKnight.svg';
 import helmet from '@/assets/helmet.svg';
@@ -28,7 +28,7 @@ import joustBorder from '@/assets/joustBorder.svg';
 function App() {
   const [listUrls, setListUrls] = useState<string[]>(['']);
   const [genreSelect, setGenreSelect] = useState<Record<number, SelectionState>>({});
-  const [languageSelect, setLanguageSelect] = useState<({ id: string; name: string }[])>([]);;
+  const [languageSelect, setLanguageSelect] = useState<({ id: string; name: string }[])>([]);
   const [peopleSelect, setPeopleSelect] = useState<({ id: number; department: string, name: string }[])>([]);
   const [peopleQuery, setPeopleQuery] = useState<string>('');
   const [keywordSelect, setKeywordSelect] = useState<({ id: number; name: string }[])>([]);
@@ -338,18 +338,18 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
   }
   </div>
 
-  <VineDivider className="mt-0 mb-6" />
+  <VineDivider className="mt-0 mb-4" />
 
-    <div className='flex flex-col items-center md:flex-row md:items-start'>
-      <span className="flex items-center whitespace-nowrap md:mt-2">
+    <div className='flex flex-col items-center md:flex-row md:items-baseline'>
+      <span className="flex items-center whitespace-nowrap">
         Search within Letterboxd
-        <Button variant="sort" onClick={() => setActiveModal('letterboxdHelp')} aria-label="About Letterboxd list search" className="font-bold px-3 min-w-11 min-h-11">?</Button>
+        <Button variant="sort" onClick={() => setActiveModal('letterboxdHelp')} aria-label="About Letterboxd list search" className="font-bold w-7.5 h-7.5 p-0 -mr-7.5 md:mr-0">?</Button>
       </span>
       <div className="flex flex-col w-full max-w-sm sm:max-w-lg">
         {listUrls.map((url, index) => (
         <div key={index} className="flex items-center gap-2">
           <input
-            className = "flex-1 min-w-0 border-3 border-black my-2 px-2 py-1 bg-white text-black focus:outline-none fous:ring-2 focus:ring-red-500"
+            className = "flex-1 min-w-0 border-3 border-black my-2 px-2 py-1 bg-white text-black focus:outline-none focus:ring-2 focus:ring-red-500"
             value = {url}
             onChange={(e) => updateListUrl(index, e.target.value)}
             aria-label={`Letterboxd list URL or username ${index + 1}`}
@@ -449,7 +449,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           )
         ) : (
         <>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 sm:gap-y-5 sm:mx-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 sm:gap-y-5 mx-2">
           {visibleMovies.map(m=> <MovieCard key={m.id} id={m.id} poster={m.poster_path} title={m.title} overview={m.overview} rating={m.vote_average} voteCount={m.vote_count} releaseDate={m.release_date}/>)}
         </div>
 
@@ -482,7 +482,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       }
       </div>
       <div ref={scrollSpacerRef} />
-      <AboutFooter />
+      <About />
     </div>
   );
 };

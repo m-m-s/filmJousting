@@ -17,7 +17,6 @@ const cache: Record<string, any> = {};
 export async function searchTMDB(type: 'movie' | 'keyword' | 'person', query: string, year?: string) {
   const cacheKey = `${type}:${query}:${year || ''}`;
   if ( cache[cacheKey] ){
-    console.log('cache hit:', cacheKey);
     return cache[cacheKey];
   } else {
   const params: Record<string, string> = { query };

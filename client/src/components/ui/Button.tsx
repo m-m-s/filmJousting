@@ -17,7 +17,7 @@ type ButtonProps = {
 
 const variantStyles: Record<ButtonVariant, string> = {
   filter:' text-lg font-medium hover:bg-opacity-90 p-3 underline underline-offset-5',
-  sort: 'px-2 hover:underline hover:underline-offset-3',
+  sort: 'px-2.5 hover:underline hover:underline-offset-3',
   search: 'border-3 px-2 py-1 hover:bg-black hover:text-white',
   weight: 'm-1 px-1.5 p-1',
   primary: 'px-3 mb-1 text-lg hover:underline hover:underline-offset-5',

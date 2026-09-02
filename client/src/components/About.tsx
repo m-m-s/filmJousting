@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
-export const AboutFooter = () => {
+export const About = () => {
     const [modal, setModal] = useState<'about' | 'credits' | null>(null);
 
     return (
         <>
-            <footer className="fixed bottom-1 right-0 sm:bottom-4 sm:right-4 z-40">
-                <Button variant="sort" onClick={() => setModal('about')} aria-label="About Film Jousting" className="text-xl font-bold">?</Button>
-            </footer>
+            <div className="fixed top-1 right-1 sm:top-4 sm:right-4 z-40">
+                <Button variant="sort" onClick={() => setModal('about')} aria-label="About Film Jousting" className="bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] w-7.5 h-7.5 p-0 text-xl font-bold leading-none">?</Button>
+            </div>
             <Modal isOpen={modal !== null} onClose={() => setModal(null)} align="center" label={modal === 'credits' ? 'Credits' : 'About'}>
                 {modal === 'about' &&
                 <div className="flex flex-col items-center gap-3 text-start m-5">

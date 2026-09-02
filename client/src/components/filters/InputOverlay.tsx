@@ -27,7 +27,7 @@ export const InputOverlay = <T extends {id: string | number},>({options, selecte
                 onChange={onChange}
                 multiple>
                 <ComboboxInput 
-                    className ="w-full border-black border-3 px-3 py-2 bg-white text-black focus:outline-none fous:ring-2 focus:ring-red-500"
+                    className ="w-full border-black border-3 px-3 py-2 bg-white text-black focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder= {placeholderText}
                     onChange={(e) => {
                         setInput(e.target.value);
