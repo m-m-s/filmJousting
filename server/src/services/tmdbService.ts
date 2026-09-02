@@ -1,30 +1,40 @@
-import type { FilterCriteria, Movie } from '../types'
+import type { FilterCriteria, Genre, Keyword, Movie, MovieDetails, Person, TMDBPage } from '../types'
 import { fetchRandomPages, tmdbFetch } from './utils'
 
 
 export async function getGenres() {
-  const data = await tmdbFetch('/genre/movie/list');
+  const data = await tmdbFetch<{ genres: Genre[] }>('/genre/movie/list');
   return data.genres;
 }
 
 export async function getMovieDetails(id: string) {
-  const data = await tmdbFetch(`/movie/${id}`);
+  const data = await tmdbFetch<MovieDetails>(`/movie/${id}`);
   return data;
 }
 
-const cache: Record<string, any> = {};
+// Lets the return type follow the type argument, so searchTMDB('movie', ...)
+// hands back Movie[] rather than a union every caller has to narrow.
+type SearchResult = {
+  movie: Movie;
+  keyword: Keyword;
+  person: Person;
+};
 
-export async function searchTMDB(type: 'movie' | 'keyword' | 'person', query: string, year?: string) {
+const cache: Record<string, (Movie | Keyword | Person)[]> = {};
+
+export async function searchTMDB<T extends keyof SearchResult>(type: T, query: string, year?: string): Promise<SearchResult[T][]> {
   const cacheKey = `${type}:${query}:${year || ''}`;
   if ( cache[cacheKey] ){
-    return cache[cacheKey];
+    // The key encodes the search type, but only at runtime — TypeScript can't
+    // follow that back to T, so the read needs asserting.
+    return cache[cacheKey] as SearchResult[T][];
   } else {
   const params: Record<string, string> = { query };
   if (year) {
     params.year = year;
   }
-  const data = await tmdbFetch(`/search/${type}`, params);
-  cache[cacheKey] = data.results;  
+  const data = await tmdbFetch<TMDBPage<SearchResult[T]>>(`/search/${type}`, params);
+  cache[cacheKey] = data.results;
   return data.results;
 }};
 
@@ -111,18 +121,18 @@ export async function discoverMovies(filters: FilterCriteria) {
       // Discovering again with unchanged filters walks the ranked pages forward
       // instead of returning page 1 every time.
       const requested = Math.max(1, filters.page ?? 1);
-      let ranked = await tmdbFetch('/discover/movie', {...params, page: String(requested)});
+      let ranked = await tmdbFetch<TMDBPage<Movie>>('/discover/movie', {...params, page: String(requested)});
       const totalPages = ranked.total_pages;
 
       // Past the end, wrap around rather than returning nothing.
       if (ranked.results.length === 0 && totalPages > 0 && requested > totalPages) {
         const wrapped = ((requested - 1) % Math.min(totalPages, 500)) + 1;
-        ranked = await tmdbFetch('/discover/movie', {...params, page: String(wrapped)});
+        ranked = await tmdbFetch<TMDBPage<Movie>>('/discover/movie', {...params, page: String(wrapped)});
       }
       allMovies.push(...ranked.results);
 
       if (totalPages > 3) {
-        const randomPages = await fetchRandomPages('/discover/movie', params, totalPages, 3);
+        const randomPages = await fetchRandomPages<Movie>('/discover/movie', params, totalPages, 3);
         allMovies.push(...randomPages);
       }
     }

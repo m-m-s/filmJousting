@@ -32,13 +32,36 @@ export interface ScoredMovie extends Movie {
   score: number;      // calculated by scoring engine
 }
 
+export interface Genre {
+  id: number;
+  name: string;
+}
 
-interface Keyword {
+// /movie/{id}. Deliberately not extending Movie: the detail endpoint returns
+// full genre objects where search and discover return genre_ids, so it isn't
+// a superset.
+export interface MovieDetails {
+  id: number;
+  title: string;
+  runtime: number | null;   // null when TMDB has no runtime on file
+  genres: Genre[];
+}
+
+// The envelope /discover and /search both wrap their results in.
+export interface TMDBPage<T> {
+  page: number;
+  results: T[];
+  total_pages: number;
+  total_results: number;
+}
+
+
+export interface Keyword {
   id: number;               // TMDB keyword ID
   name: string;
 }
 
-interface Person {
+export interface Person {
   id: number;               // TMDB person ID
   name: string;
   profile_url?: string;     // headshot image

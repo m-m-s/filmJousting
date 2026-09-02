@@ -1,10 +1,13 @@
-import type { Movie } from '../types'
+import type { Movie, TMDBPage } from '../types'
 import { AppError } from '../errors.js';
 
 const BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = process.env.TMDB_API_KEY;
 
-export async function tmdbFetch(endpoint: string, params: Record<string, string> = {}) {
+// Callers declare the shape they expect. TypeScript cannot verify what TMDB
+// actually sends — this is a claim, not a runtime check — but it keeps every
+// consumer honest about the fields it uses.
+export async function tmdbFetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const url = new URL(`${BASE_URL}${endpoint}`);
   url.searchParams.append('api_key', API_KEY || '');
 
@@ -31,16 +34,16 @@ export async function tmdbFetch(endpoint: string, params: Record<string, string>
     // more specific user-facing code than this shared fetch helper can know.
     throw new AppError('TMDB_UNREACHABLE', response.status, `TMDB API error: ${response.status} ${response.statusText}`);
   }
-    return response.json();
+    return response.json() as Promise<T>;
 };
 
-export async function fetchRandomPages(endpoint: string, params: Record<string, string>, totalPages: number, count: number){
+export async function fetchRandomPages<T>(endpoint: string, params: Record<string, string>, totalPages: number, count: number): Promise<T[]> {
   const pageNum = new Set<number>();
   while (pageNum.size < Math.min(count, totalPages -1)) {
     pageNum.add(Math.floor(Math.random()* (totalPages - 1))+ 2);
   }
   const pages = await Promise.all(
-    [...pageNum].map(page => tmdbFetch(endpoint, {...params, page: page.toString()}))
+    [...pageNum].map(page => tmdbFetch<TMDBPage<T>>(endpoint, {...params, page: page.toString()}))
   );
   return pages.flatMap(p=>p.results);
 }

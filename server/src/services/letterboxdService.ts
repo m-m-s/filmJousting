@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import { searchTMDB } from './tmdbService';
 import { AppError } from '../errors.js';
+import type { Movie } from '../types';
 
 export async function scrapeLetterboxd(url: string) {
     // A bare username means that person's watchlist, which is otherwise a URL
@@ -97,7 +98,7 @@ while (currentUrl) {
 }
 
 export async function scrapedMovieDetail(titles:string[]){
-    let movieList = []
+    const movieList: Movie[] = [];
     for (const title of titles){
         const parts = title.split('(');
         const movieName = parts[0]!.trim();

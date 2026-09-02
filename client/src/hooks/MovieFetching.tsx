@@ -49,10 +49,7 @@ export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps
         const response = await fetch(`${API_URL}/api/tmdb/letterboxdList`, {
           method: 'POST',
           headers: { 'Content-Type' : 'application/json' },
-          // listUrl and filters are only here for a server that predates
-          // multi-list support, so the two deploys can land in any order.
-          // Safe to drop once the server is live.
-          body: JSON.stringify({ listUrls: urls, listUrl: urls[0], filters: discoverParameters })
+          body: JSON.stringify({ listUrls: urls })
         });
         if (!response.ok) {
           const code = await getErrorCodeFromResponse(response);
