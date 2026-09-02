@@ -97,8 +97,10 @@ while (currentUrl) {
     return titles;
 }
 
+// Keyed by the scraped title rather than returned flat, so the caller can still
+// tell which list each film came from once the titles have become movies.
 export async function scrapedMovieDetail(titles:string[]){
-    const movieList: Movie[] = [];
+    const byTitle = new Map<string, Movie>();
     for (const title of titles){
         const parts = title.split('(');
         const movieName = parts[0]!.trim();
@@ -106,8 +108,8 @@ export async function scrapedMovieDetail(titles:string[]){
         const results = await searchTMDB('movie', movieName, year);
         const topResult = results[0];
         if (topResult){
-        movieList.push(topResult)
+        byTitle.set(title, topResult)
         }
     }
-    return movieList;
+    return byTitle;
 }

@@ -17,7 +17,11 @@ export type ErrorCode =
   | 'GENRES_FAILED'
   | 'TMDB_UNAUTHORIZED'
   | 'TMDB_RATE_LIMITED'
-  | 'TMDB_UNREACHABLE';
+  | 'TMDB_UNREACHABLE'
+  | 'CONTACT_MISSING_MESSAGE'
+  | 'CONTACT_TOO_LONG'
+  | 'CONTACT_RATE_LIMITED'
+  | 'CONTACT_FAILED';
 
 // Thrown anywhere in a service to carry a specific error code up to the
 // route handler. Anything else that's thrown (a raw TypeError, etc.) is

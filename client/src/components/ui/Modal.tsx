@@ -18,7 +18,7 @@ const VineStripHorizontal = ({ side }: { side: 'top' | 'bottom' }) => (
 // Rotated from the corner in whole pixels. Centring with percentages landed on
 // a half pixel (the panel's height comes from dvh) and blurred the tiles.
 const VineStripVertical = ({ side }: { side: 'left' | 'right' }) => (
-    <div className={`bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] absolute top-5 bottom-5 w-5 overflow-hidden ${side === 'left' ? 'left-0' : 'right-0'}`}>
+    <div className={`bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] absolute top-5 bottom-5 w-5 overflow-hidden ${side === 'left' ? 'left-0 -scale-x-100' : 'right-0'}`}>
         <div className="absolute top-0 left-0 flex w-max origin-top-left transform-[translateX(20px)_rotate(90deg)]">
             {vineTiles}
         </div>

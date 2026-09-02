@@ -13,6 +13,9 @@ type MovieFetchingProps = {
 export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps) => {
     const [movies, setMovies] = useState<Movie[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    // Which search produced the current results, so Discover can warn before
+    // replacing a Letterboxd list.
+    const [source, setSource] = useState<'discover' | 'letterboxd' | null>(null);
     const { showError } = useErrorModal();
 
     const discover = async (page = 1) => {
@@ -35,6 +38,7 @@ export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps
           showError('NO_RESULTS');
         }
         setMovies(data);
+        setSource('discover');
         } catch (error) {
         showError('NETWORK_UNREACHABLE', error);
     } finally {
@@ -61,11 +65,12 @@ export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps
           showError('NO_RESULTS');
         }
         setMovies(data);
+        setSource('letterboxd');
       } catch (error) {
         showError('NETWORK_UNREACHABLE', error);
       } finally {
         setIsLoading(false);
       }
     };
-    return{discover, listScraping, movies, isLoading};
+    return{discover, listScraping, movies, isLoading, source};
 };

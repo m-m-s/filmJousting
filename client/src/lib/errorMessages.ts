@@ -25,6 +25,10 @@ export type ErrorCode =
       | 'JOUST_NO_MOVIES'
         | 'JOUST_NOT_ENOUGH_MOVIES'
           | 'NO_RESULTS'
+          | 'CONTACT_MISSING_MESSAGE'
+          | 'CONTACT_TOO_LONG'
+          | 'CONTACT_RATE_LIMITED'
+          | 'CONTACT_FAILED'
           | 'UNKNOWN';
 
 // User-facing copy only. No status codes, endpoint names, or stack traces —
@@ -38,9 +42,9 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SEARCH_FAILED: "Search isn't working right now. Please try again in a moment.",
   MOVIE_DETAILS_NOT_FOUND: "We couldn't find details for that movie.",
   MOVIE_DETAILS_FAILED: "We couldn't load that movie's details right now.",
-  LETTERBOXD_MISSING_PARAMS: 'Enter a Letterboxd list URL before searching.',
-  LETTERBOXD_INVALID_URL: "That doesn't look like a valid Letterboxd list URL.",
-  LETTERBOXD_FETCH_FAILED: "We couldn't reach that Letterboxd list. Make sure it exists or try again.",
+  LETTERBOXD_MISSING_PARAMS: 'Enter a Letterboxd URL or username before searching.',
+  LETTERBOXD_INVALID_URL: "That doesn't look like a Letterboxd list URL or username.",
+  LETTERBOXD_FETCH_FAILED: "We couldn't find that URL or username. Please check it and try again.",
   LETTERBOXD_EMPTY_LIST: "That Letterboxd list doesn't seem to have any films on it.",
   LETTERBOXD_NO_MATCHES: "We found that list, but couldn't match any of its films to a movie in our database.",
   LETTERBOXD_FAILED: "We couldn't load that Letterboxd list right now. Please try again.",
@@ -52,13 +56,17 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   JOUST_NO_MOVIES: 'Discover some movies before starting a joust.',
   JOUST_NOT_ENOUGH_MOVIES: "You don't have enough movies for that bracket size. Discover more or choose a smaller bracket.",
   NO_RESULTS: 'No movies found — try broadening your selection.',
+  CONTACT_MISSING_MESSAGE: 'Write a message before sending.',
+  CONTACT_TOO_LONG: 'That message is a little too long. Try trimming it down.',
+  CONTACT_RATE_LIMITED: "You've sent a few messages already. Please try again a bit later.",
+  CONTACT_FAILED: "We couldn't send that right now. Please try again in a moment.",
   UNKNOWN: 'Something went wrong. Please try again.',
 };
 
 // Codes that aren't really "errors" — nothing failed, they're just guidance
 // (e.g. why a disabled button won't do anything yet). The modal skips the
 // "Something went wrong" heading for these and shows the message alone.
-const NOTICE_CODES = new Set<ErrorCode>(['JOUST_NO_MOVIES', 'JOUST_NOT_ENOUGH_MOVIES', 'DISCOVER_MISSING_GENRES', 'SEARCH_MISSING_QUERY', 'SEARCH_MISSING_GENRES', 'NO_RESULTS']);
+const NOTICE_CODES = new Set<ErrorCode>(['JOUST_NO_MOVIES', 'JOUST_NOT_ENOUGH_MOVIES', 'DISCOVER_MISSING_GENRES', 'SEARCH_MISSING_QUERY', 'SEARCH_MISSING_GENRES', 'LETTERBOXD_MISSING_PARAMS', 'CONTACT_MISSING_MESSAGE', 'NO_RESULTS']);
 
 export function isNoticeCode(code: ErrorCode | string | undefined): boolean {
   return !!code && NOTICE_CODES.has(code as ErrorCode);

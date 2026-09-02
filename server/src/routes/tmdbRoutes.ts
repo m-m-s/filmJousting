@@ -3,6 +3,7 @@ import { getGenres, searchTMDB, discoverMovies, getMovieDetails } from '../servi
 import { scrapeLetterboxd, scrapedMovieDetail } from '../services/letterboxdService.js';
 import { deDuplicate } from '../services/utils.js';
 import { AppError, type ErrorCode } from '../errors.js';
+import type { ListMovie } from '../types.js';
 
 const router = Router();
 
@@ -97,12 +98,30 @@ router.post('/letterboxdList', async (req, res) => {
 
     const scraped = await Promise.all(urls.map(url => scrapeLetterboxd(url)));
     const titles = [...new Set(scraped.flat())];
-    const movieList = await scrapedMovieDetail(titles);
-    if (movieList.length === 0) {
+    const byTitle = await scrapedMovieDetail(titles);
+    if (byTitle.size === 0) {
       res.status(404).json({ error: { code: 'LETTERBOXD_NO_MATCHES', message: `Found ${titles.length} titles on the list but none matched a TMDB movie` } });
       return;
     }
-    res.json(deDuplicate(movieList));
+
+    // Counted per resolved TMDB id, not per title, so the same film spelled two
+    // ways across two lists still registers as a match. The inner Set stops one
+    // list crediting a film twice for the same reason.
+    const listMatches = new Map<number, number>();
+    for (const listTitles of scraped) {
+      const idsOnThisList = new Set<number>();
+      for (const title of listTitles) {
+        const movie = byTitle.get(title);
+        if (movie) idsOnThisList.add(movie.id);
+      }
+      for (const id of idsOnThisList) {
+        listMatches.set(id, (listMatches.get(id) ?? 0) + 1);
+      }
+    }
+
+    const movieList: ListMovie[] = deDuplicate([...byTitle.values()])
+      .map(movie => ({ ...movie, listMatches: listMatches.get(movie.id) ?? 1 }));
+    res.json(movieList);
   } catch (error) {
     sendError(res, error, 'LETTERBOXD_FAILED', 'Failed to scrape Letterboxd list');
   }

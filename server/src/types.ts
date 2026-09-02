@@ -47,6 +47,12 @@ export interface MovieDetails {
   genres: Genre[];
 }
 
+// A Movie from a Letterboxd search, carrying how many of the searched lists it
+// appeared on. Always 1 for a single-list search.
+export interface ListMovie extends Movie {
+  listMatches: number;
+}
+
 // The envelope /discover and /search both wrap their results in.
 export interface TMDBPage<T> {
   page: number;

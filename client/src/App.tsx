@@ -71,7 +71,7 @@ function App() {
     sortBy: 'popularity.desc'
   }), [genreSelect, languageSelect, keywordSelect, peopleSelect, ratingRange, runtimeRange, releaseDateRange, obscure]);
 
-  const {movies, isLoading, discover, listScraping} = MovieFetching({listUrls, discoverParameters});
+  const {movies, isLoading, discover, listScraping, source} = MovieFetching({listUrls, discoverParameters});
 
   const updateListUrl = (index: number, value: string) =>
     setListUrls(prev => prev.map((url, i) => (i === index ? value : url)));
@@ -111,7 +111,7 @@ const scrollSpacerRef = useRef<HTMLDivElement>(null);
 const lastDiscoverRef = useRef<string | null>(null);
 const discoverPageRef = useRef(1);
 
-const handleDiscover = () => {
+const runDiscover = () => {
   const filterKey = JSON.stringify(discoverParameters);
   if (filterKey === lastDiscoverRef.current) {
     discoverPageRef.current += 1;
@@ -122,6 +122,16 @@ const handleDiscover = () => {
   setCurrentPage(1);
   setLoadingDismissed(false);
   discover(discoverPageRef.current);
+};
+
+// Discovering throws away a Letterboxd list that took a while to build, so
+// check first rather than silently replacing it.
+const handleDiscover = () => {
+  if (source === 'letterboxd' && movies.length > 0) {
+    setActiveModal('discoverConfirm');
+    return;
+  }
+  runDiscover();
 };
 
 const goToPage = (page: number) => {
@@ -358,7 +368,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           {index === 0 ? (
           <>
             <Button variant="search" onClick={addListUrl} aria-label="Add another list" className="font-bold -mx-1 px-2">+</Button>
-            <Button variant="search" onClick={() => { setCurrentPage(1); setLoadingDismissed(false); listScraping(); }} disabled={!hasListUrl || discoverParameters.genres.length === 0} disabledReason={!hasListUrl ? 'SEARCH_MISSING_QUERY' : 'SEARCH_MISSING_GENRES'}>Search</Button>
+            <Button variant="search" onClick={() => { setCurrentPage(1); setLoadingDismissed(false); listScraping(); }} disabled={!hasListUrl || discoverParameters.genres.length === 0} disabledReason={!hasListUrl ? 'LETTERBOXD_MISSING_PARAMS' : 'SEARCH_MISSING_GENRES'}>Search</Button>
           </>
           ) : (
             <Button variant="sort" onClick={() => removeListUrl(index)} aria-label="Remove this list">×</Button>
@@ -369,7 +379,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
     </div>
 
     <Modal isOpen={activeModal === 'letterboxdHelp'} onClose={() => setActiveModal(null)} align="center" label="About Letterboxd list search">
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col items-center gap-3 text-start m-5">
         <h1 className="text-2xl font-bold text-center">Letterboxd Lists</h1>
         <p>Paste a link to any Letterboxd list. A watchlist, a ranked top 100, a themed collection or more! Your filters and our custom scoring will be applied to the films on that list instead of searching all of TMDB.</p>
         <p>Or just type a Letterboxd username on its own and we'll search that person's watchlist.</p>
@@ -393,6 +403,16 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       confirmCloseMessage={joustInProgress ? 'Leaving now loses your bracket!' : undefined}>
       <Joust movies={resultPool} onInProgressChange={setJoustInProgress}/>
     </Modal>
+    <Modal isOpen={activeModal === 'discoverConfirm'} onClose={() => setActiveModal(null)} align="center" label="Replace your Letterboxd results?">
+      <div className="flex flex-col items-center gap-3 text-start m-5">
+        <p className="text-center">Discovering now will pull movies from a TMDB search and replace your Letterboxd search.</p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Button variant="search" onClick={() => setActiveModal(null)}>Keep my list</Button>
+          <Button variant="search" onClick={() => { setActiveModal(null); runDiscover(); }}>Discover anyway</Button>
+        </div>
+      </div>
+    </Modal>
+
     <Modal isOpen={isLoading && !loadingDismissed} onClose={() => setLoadingDismissed(true)} align="center" label="Finding films" historyEntry={false}>
       <LoadingAnimation />
     </Modal>
@@ -416,6 +436,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         )}
         <span className="ml-auto self-end p-2 text-xs whitespace-nowrap">Discover again to go deeper</span>
         </div>
+        {sortOverlay && <hr className="border-t-2 border-black mt-1" />}
         <div className="flex justify-center">
         {sortOverlay &&
         <div className='flex flex-wrap justify-start items-center gap-2 p-2 mt-1 mb-2'>
