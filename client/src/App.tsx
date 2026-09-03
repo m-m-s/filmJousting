@@ -111,6 +111,9 @@ const lastDiscoverRef = useRef<string | null>(null);
 const discoverPageRef = useRef(1);
 
 const runDiscover = () => {
+  if (source === 'letterboxd') {
+    setListUrls(['']);
+  }
   const filterKey = JSON.stringify(discoverParameters);
   if (filterKey === lastDiscoverRef.current) {
     discoverPageRef.current += 1;

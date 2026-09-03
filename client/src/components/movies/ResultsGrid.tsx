@@ -11,11 +11,22 @@ export const ResultsGrid = ({ movies }: ResultsGridProps) => {
     const [revealed, setRevealed] = useState(false);
 
     useEffect(() => {
-        const settle = () => setRevealed(true);
-        window.addEventListener('scrollend', settle, { once: true });
-        const fallback = window.setTimeout(settle, 800);
+        let lastY = window.scrollY;
+        let stillFor = 0;
+
+        const watch = window.setInterval(() => {
+            if (window.scrollY === lastY) {
+                stillFor += 50;
+                if (stillFor >= 150) setRevealed(true);
+            } else {
+                lastY = window.scrollY;
+                stillFor = 0;
+            }
+        }, 50);
+
+        const fallback = window.setTimeout(() => setRevealed(true), 1500);
         return () => {
-            window.removeEventListener('scrollend', settle);
+            window.clearInterval(watch);
             window.clearTimeout(fallback);
         };
     }, []);

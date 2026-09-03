@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { LoadingAnimation } from '@/components/ui/LoadingAnimation';
 
-const SHOW_AFTER_MS = 2000;
+const SHOW_AFTER_MS = 400;
 
 type LoadingModalProps = {
     onDismiss: () => void;

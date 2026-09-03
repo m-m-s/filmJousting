@@ -32,7 +32,7 @@ export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick, onUnd
 
     useEffect(() => {
         if (imagesReady) return;
-        const timer = window.setTimeout(() => setShowLoader(true), 2000);
+        const timer = window.setTimeout(() => setShowLoader(true), 400);
         return () => window.clearTimeout(timer);
     }, [imagesReady]);
 
