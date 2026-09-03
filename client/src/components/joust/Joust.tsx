@@ -39,6 +39,11 @@ export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
     const matchUp = bracketedMovies ? bracketedMovies[winners.length] : null;
 
     const startJoust = (contenders: ScoredMovie[]) => {
+        for (const movie of contenders) {
+            if (!movie.poster_path) continue;
+            const img = new Image();
+            img.src = `https://image.tmdb.org/t/p/w185${movie.poster_path}`;
+        }
         setHistory([]);
         setRounds(roundsFor(contenders.length));
         setBracketSize(contenders.length);

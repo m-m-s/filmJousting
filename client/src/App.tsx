@@ -15,7 +15,7 @@ import { makeSelectionHandler , genreSplit, sortMovies, dropMostPopular, applyFi
 import { scoreMovies } from '@/lib/scoring';
 import { Joust } from '@/components/joust/Joust';
 import { FilterButton } from '@/components/filters/FilterButton';
-import { LoadingAnimation } from '@/components/ui/LoadingAnimation';
+import { LoadingModal } from '@/components/ui/LoadingModal';
 import { VineDivider } from '@/components/ui/VineDivider';
 import { About } from '@/components/About';
 import { MovieFetching } from '@/hooks/MovieFetching';
@@ -25,6 +25,7 @@ import helmet from '@/assets/helmet.svg';
 import birdEmblem from '@/assets/emblem.svg';
 import discoverBorder from '@/assets/discoverBorder.svg';
 import joustBorder from '@/assets/joustBorder.svg';
+import vineBlockTile from '@/assets/flowerOrnamentalBorder.svg';
 
 function App() {
   const [listUrls, setListUrls] = useState<string[]>(['']);
@@ -194,6 +195,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       <link rel="preload" as="image" href={joustKnight} />
       <link rel="preload" as="image" href={discoverBorder} />
       <link rel="preload" as="image" href={joustBorder} />
+      <link rel="preload" as="image" href={vineBlockTile} />
       <div className="flex items-center justify-center gap-0 sm:gap-2 m-2">
         <img src={joustKnight} alt="" className="h-44 w-auto -my-8 -mr-10 -scale-x-100" />
         <h1 className="text-black-500 text-3xl sm:text-4xl font-bold text-center -mb-10">Film Jousting</h1>
@@ -268,7 +270,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
   <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
     <FilterButton name={'Languages'} isOpen={activeModal === 'language'} clickAction={() => setActiveModal('language')} onClose={() => setActiveModal(null)} buttonClassName="text-sm sm:text-lg"
       info={languageSelect.length > 0 && (
-        <span className="text-md">
+        <span>
           {languageSelect.map(
             l => <Button key={l.id} variant='selected' onClick={()=>setLanguageSelect(languageSelect.filter(f => f.id !== l.id))}>{l.name}</Button>
           )}
@@ -276,7 +278,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       )}
       children={
         <>
-          <span className="text-md sm:text-sm">Languages:</span>
+          <span className="sm:text-sm">Languages:</span>
           <InputOverlay
             options={LANGUAGES}
             selected={languageSelect}
@@ -291,14 +293,14 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
     <FilterButton name={'Keywords'} isOpen={activeModal === 'keyword'} clickAction={() => setActiveModal('keyword')} onClose={() => setActiveModal(null)} buttonClassName="text-sm sm:text-lg"
       info={keywordSelect.length > 0 && (
-        <span className="text-md">
+        <span>
           {keywordSelect.map(k =>
             <Button variant='selected' key={k.id} onClick={()=>setKeywordSelect(keywordSelect.filter(f=> f.id !== k.id))}>{k.name}</Button>)}
         </span>
       )}
       children={
         <>
-          <span className="text-md">Keyword:</span>
+          <span>Keyword:</span>
           <InputOverlay
             options={keywordOptions}
             selected={keywordSelect}
@@ -313,14 +315,14 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
     <FilterButton name={'People'} isOpen={activeModal === 'people'} clickAction={() => setActiveModal('people')} onClose={() => setActiveModal(null)} buttonClassName="text-sm sm:text-lg"
       info={peopleSelect.length > 0 && (
-        <span className="text-md">
+        <span>
           {peopleSelect.map(p =>
             <Button key={p.id} variant='selected' onClick={()=>setPeopleSelect(peopleSelect.filter(f=> f.id !== p.id))}>{p.name}</Button>)}
         </span>
       )}
       children={
         <>
-          <span className="text-md">People:</span>
+          <span>People:</span>
           <InputOverlay
             options={peopleOptions}
             selected={peopleSelect}
@@ -425,9 +427,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       </div>
     </Modal>
 
-    <Modal isOpen={isLoading && !loadingDismissed} onClose={() => setLoadingDismissed(true)} align="center" label="Finding films" historyEntry={false}>
-      <LoadingAnimation />
-    </Modal>
+    {isLoading && !loadingDismissed && <LoadingModal onDismiss={() => setLoadingDismissed(true)} />}
 
     <div>
     {movies.length > 0 &&

@@ -33,9 +33,10 @@ type ModalProps = {
     confirmCloseMessage?: string;
     label?: string;
     historyEntry?: boolean;
+    wide?: boolean;
 };
 
-export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass = 'max-h-[88dvh]', topOffsetClass = 'mt-[30dvh]', confirmCloseMessage, label, historyEntry = true}: ModalProps) => {
+export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass = 'max-h-[88dvh]', topOffsetClass = 'mt-[30dvh]', confirmCloseMessage, label, historyEntry = true, wide = false}: ModalProps) => {
     useEffect(() => {
         if (!isOpen) return;
         openModalCount += 1;
@@ -198,7 +199,7 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
                     onClick={requestClose}>x</button>
                 <div className={`
                     bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] border
-                    w-[88vw] bg-white px-7 pt-7 pb-7 ${maxHeightClass} overflow-y-auto overflow-x-hidden scrollbar-gutter-both md:w-[55vw] lg:max-w-[50vw]`}
+                    w-[88vw] bg-white px-7 py-7 md:px-12 md:py-10 ${maxHeightClass} overflow-y-auto overflow-x-hidden scrollbar-gutter-both lg:max-w-[50vw] ${wide ? "md:w-[55vw]" : "md:w-auto md:max-w-[55vw]"}`}
                 style={heightOverrideStyle}
                 onClick={(e) => e.stopPropagation()}>
                     {children}

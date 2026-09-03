@@ -87,7 +87,7 @@ export const JoustSetup = ({ movies, onStart }: JoustSetupProps) => {
             <h2 className='text-center text-2xl font-bold mb-3'>Build Your Tournament</h2>
             <p className='text-sm text-left mb-3 max-w-xs mx-auto'>Pit your discovered movies in head-to-head matchups until one is crowned the movie to watch!</p>
             <div className='flex items-baseline gap-2 mb-2'>
-                <p className='text-md font-bold underline-offset-6 underline'>Bracket Size</p>
+                <p className='font-bold underline-offset-6 underline'>Bracket Size</p>
                 <span className='text-sm'>— {roundsFor(bracketSize)} rounds</span>
             </div>
             <div className='flex flex-wrap justify-center gap-2 mb-2'>
@@ -101,7 +101,7 @@ export const JoustSetup = ({ movies, onStart }: JoustSetupProps) => {
                 <p className='text-sm mb-3 max-w-xs mx-auto'>Not enough movies for this bracket size — try discovering more movies, or turning off some advanced filters.</p>
             )}
             <div className='my-2'>
-                <p className='mb-2 text-md font-bold underline-offset-6 underline'>Sort by</p>
+                <p className='mb-2 font-bold underline-offset-6 underline'>Sort by</p>
                     <div className='flex flex-wrap justify-center'>
                     {sortOptions.map(({ key, label }) => (
                     <Button key={key} variant='weight' onClick={() => setSortKey(key)} aria-pressed={sortKey === key} className={`hover:bg-black hover:text-white ${sortKey === key ? 'bg-black text-white' : ''}`}>{label}</Button>
@@ -110,7 +110,7 @@ export const JoustSetup = ({ movies, onStart }: JoustSetupProps) => {
             </div>
 
             <div className='my-2'>
-                <button onClick={() => setAdvFilterOpen(!advFilterOpen)} className='mb-2 text-md font-bold underline-offset-6 underline'>
+                <button onClick={() => setAdvFilterOpen(!advFilterOpen)} className='mb-2 font-bold underline-offset-6 underline'>
                     Advanced Filters {advFilterOpen ? '▲' : '▼'}
                 </button>
                 {advFilterOpen && (

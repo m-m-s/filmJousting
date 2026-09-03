@@ -28,6 +28,14 @@ export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick, onUnd
         })
     );
 
+    const [showLoader, setShowLoader] = useState(false);
+
+    useEffect(() => {
+        if (imagesReady) return;
+        const timer = window.setTimeout(() => setShowLoader(true), 2000);
+        return () => window.clearTimeout(timer);
+    }, [imagesReady]);
+
     useEffect(() => {
         let cancelled = false;
         let settledCount = 0;
@@ -52,14 +60,18 @@ export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick, onUnd
         return () => { cancelled = true; };
     }, [matchUp]);
 
-    if (!imagesReady) return <LoadingAnimation />;
+    if (!imagesReady) return (
+        <div className='flex items-center justify-center min-h-96'>
+            {showLoader && <LoadingAnimation />}
+        </div>
+    );
 
     return (
         <>
             {canUndo && (
                 <Button variant='search' onClick={onUndo} className='fixed bottom-3 left-1/2 -translate-x-1/2 z-60 bg-[#F6F3EF] text-sm leading-none'>Change your mind?</Button>
             )}
-            <p className='text-md font-bold text-center underline underline-offset-1'>{roundName(currentRound, totalRounds)}</p>
+            <p className='text-base md:text-2xl font-bold text-center underline underline-offset-1 md:mb-3'>{roundName(currentRound, totalRounds)}</p>
             <div className='matchup-in flex flex-col sm:flex-row items-center gap-3 pt-1'>
                 <div className='w-full max-w-40 sm:max-w-none sm:flex-1 sm:min-w-0 -mb-6 sm:mb-0'>
                     <MovieCard

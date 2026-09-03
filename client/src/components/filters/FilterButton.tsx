@@ -23,7 +23,7 @@ export const FilterButton = ({name, isOpen, clickAction, onClose, info, align, c
                 <img src={helmet} alt="" className="absolute left-full ml-0.5 h-6 w-auto opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             </div>
                 {info}
-            <Modal isOpen= {isOpen} onClose= {onClose} align={align} topOffsetClass={topOffsetClass} label={name}>
+            <Modal isOpen= {isOpen} onClose= {onClose} align={align} topOffsetClass={topOffsetClass} label={name} wide>
                 {children}
                 </Modal>
         </div>

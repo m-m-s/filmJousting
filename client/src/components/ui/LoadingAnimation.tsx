@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import knight1 from '@/assets/knightOnHorse1.svg';
 import knight2 from '@/assets/knightOnHorse2.svg';
 
-const SLOW_AFTER_MS = 10000;
+const SLOW_AFTER_MS = 8000;
 
 export const LoadingAnimation = () => {
     const [slow, setSlow] = useState(false);
