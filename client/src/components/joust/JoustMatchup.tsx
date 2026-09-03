@@ -14,29 +14,39 @@ type JoustMatchupProps = {
     canUndo: boolean;
 };
 
-// Keyed by the pairing in Joust, so each matchup mounts fresh.
 export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick, onUndo, canUndo }: JoustMatchupProps) => {
-    const [imagesReady, setImagesReady] = useState<boolean>(false);
+    const posterUrl = (movie: ScoredMovie) =>
+        movie.poster_path ? `https://image.tmdb.org/t/p/w185${movie.poster_path}` : null;
+
+    const [imagesReady, setImagesReady] = useState<boolean>(() =>
+        matchUp.every(movie => {
+            const url = posterUrl(movie);
+            if (!url) return true;
+            const img = new Image();
+            img.src = url;
+            return img.complete;
+        })
+    );
 
     useEffect(() => {
         let cancelled = false;
         let settledCount = 0;
 
-        // A failed poster counts as settled, or the joust hangs forever.
         const handleSettled = () => {
             settledCount++;
             if (settledCount === 2 && !cancelled) setImagesReady(true);
         };
 
         for (const movie of matchUp) {
-            if (!movie.poster_path) {
+            const url = posterUrl(movie);
+            if (!url) {
                 handleSettled();
                 continue;
             }
             const img = new Image();
             img.onload = handleSettled;
             img.onerror = handleSettled;
-            img.src = `https://image.tmdb.org/t/p/w185${movie.poster_path}`;
+            img.src = url;
         }
 
         return () => { cancelled = true; };
@@ -50,7 +60,7 @@ export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick, onUnd
                 <Button variant='search' onClick={onUndo} className='fixed bottom-3 left-1/2 -translate-x-1/2 z-60 bg-[#F6F3EF] text-sm leading-none'>Change your mind?</Button>
             )}
             <p className='text-md font-bold text-center underline underline-offset-1'>{roundName(currentRound, totalRounds)}</p>
-            <div className='flex flex-col sm:flex-row items-center gap-3 pt-1'>
+            <div className='matchup-in flex flex-col sm:flex-row items-center gap-3 pt-1'>
                 <div className='w-full max-w-40 sm:max-w-none sm:flex-1 sm:min-w-0 -mb-6 sm:mb-0'>
                     <MovieCard
                         id={matchUp[0].id}

@@ -15,8 +15,6 @@ const VineStripHorizontal = ({ side }: { side: 'top' | 'bottom' }) => (
     </div>
 );
 
-// Rotated from the corner in whole pixels. Centring with percentages landed on
-// a half pixel (the panel's height comes from dvh) and blurred the tiles.
 const VineStripVertical = ({ side }: { side: 'left' | 'right' }) => (
     <div className={`bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] absolute top-5 bottom-5 w-5 overflow-hidden ${side === 'left' ? 'left-0 -scale-x-100' : 'right-0'}`}>
         <div className="absolute top-0 left-0 flex w-max origin-top-left transform-[translateX(20px)_rotate(90deg)]">
@@ -33,11 +31,7 @@ type ModalProps = {
     maxHeightClass?: string;
     topOffsetClass?: string;
     confirmCloseMessage?: string;
-    // Announced by screen readers so each dialog is distinguishable.
     label?: string;
-    // history.back() is async, so a modal closing in the same commit as another
-    // one opens pops the newcomer's entry instead of its own. Transient modals
-    // that close on their own set this false and take no entry at all.
     historyEntry?: boolean;
 };
 
@@ -45,9 +39,6 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
     useEffect(() => {
         if (!isOpen) return;
         openModalCount += 1;
-        // html as well as body: the stylesheet sets overflow-x on html, which
-        // stops body's overflow propagating to the viewport, so locking body
-        // alone would leave the page scrolling behind the modal.
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
         return () => {
@@ -59,16 +50,11 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
         };
     }, [isOpen]);
 
-    // Mobile back closes this modal rather than leaving the page. Matched on our
-    // own token, not "topmost of a stack", so a nested modal closing doesn't
-    // close us too.
     const [confirming, setConfirming] = useState(false);
     const closedViaPopRef = useRef(false);
     const dialogRef = useRef<HTMLDivElement>(null);
     const token = useId();
 
-    // A modal without a history entry is only ever used for transient content
-    // that nothing can stack on top of, so it always counts as topmost.
     const isTopmost = useCallback(
         () => !historyEntry || (window.history.state as { modalToken?: string } | null)?.modalToken === token,
         [historyEntry, token]);
@@ -81,16 +67,12 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
         onClose();
     };
 
-    // Two effects, not one: the listener needs current handlers, the history entry
-    // must be pushed exactly once per open. Listener first so it detaches before
-    // the effect below fires a popstate.
     useEffect(() => {
         if (!isOpen || !historyEntry) return;
 
         const handlePopState = () => {
             if ((window.history.state as { modalToken?: string } | null)?.modalToken === token) return;
             if (confirmCloseMessage) {
-                // Restore our entry so cancelling doesn't leave history short.
                 window.history.pushState({ modalToken: token }, '');
                 setConfirming(true);
                 return;
@@ -103,8 +85,6 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
         return () => window.removeEventListener('popstate', handlePopState);
     }, [isOpen, token, onClose, confirmCloseMessage, historyEntry]);
 
-    // Only the topmost modal owns the current history entry, so this closes one
-    // layer at a time rather than every open modal at once.
     useEffect(() => {
         if (!isOpen) return;
         const onKeyDown = (e: KeyboardEvent) => {
@@ -120,9 +100,6 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [isOpen, isTopmost, onClose, confirmCloseMessage]);
 
-    // Focus moves into the dialog on open, is kept inside while it's up, and
-    // returns to whatever opened it on close. Only the topmost dialog traps, so
-    // a nested one doesn't fight its parent.
     useEffect(() => {
         if (!isOpen) return;
         const openedFrom = document.activeElement as HTMLElement | null;

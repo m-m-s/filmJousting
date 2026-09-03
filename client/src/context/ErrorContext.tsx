@@ -10,7 +10,6 @@ export const ErrorProvider = ({ children }: { children: ReactNode }) => {
     const [isNotice, setIsNotice] = useState(false);
 
     const showError = useCallback((code: ErrorCode | string, devDetail?: unknown) => {
-        // Technical detail goes to the console; the modal only gets friendly text.
         console.error(`[${code}]`, devDetail ?? '');
         setIsNotice(isNoticeCode(code));
         setMessage(getErrorMessage(code));

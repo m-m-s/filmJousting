@@ -1,4 +1,27 @@
-  import type { SelectionState, ScoredMovie, SortKey, SortDirection } from '../types'
+  import type { SelectionState, ScoredMovie, SortKey, SortDirection, FilterCriteria, Movie } from '../types'
+
+  export const applyFilters = <T extends Movie>(movies: T[], filters: FilterCriteria): T[] =>
+    movies.filter(movie => {
+      if (filters.vetoedGenres.some(id => movie.genre_ids.includes(id))) return false;
+      if (movie.vote_average < filters.minRating) return false;
+      if (filters.maxRating !== undefined && movie.vote_average > filters.maxRating) return false;
+      if (filters.languages.length > 0 && !filters.languages.includes(movie.original_language)) return false;
+
+      const runtime = (movie as { runtime?: number | null }).runtime;
+      if (filters.runtimeRange && typeof runtime === 'number') {
+        const { min, max } = filters.runtimeRange;
+        if (min !== undefined && runtime < min) return false;
+        if (max !== undefined && runtime > max) return false;
+      }
+
+      const year = movie.release_date ? Number(movie.release_date.slice(0, 4)) : NaN;
+      if (filters.releaseYearRange && Number.isFinite(year)) {
+        const { from, to } = filters.releaseYearRange;
+        if (from !== undefined && year < from) return false;
+        if (to !== undefined && year > to) return false;
+      }
+      return true;
+    });
   
   export function makeSelectionHandler (setState: React.Dispatch<React.SetStateAction<Record<number,SelectionState>>>) {
     function selectFilter(value:number, state: SelectionState | undefined) {
@@ -36,8 +59,6 @@
     return sorted[Math.floor(sorted.length / 2)];
   };
 
-  // Drops the top 20% by popularity. TMDB's discover endpoint has no popularity
-  // filter, so this has to be a cut on the returned results.
   export const dropMostPopular = <T extends { popularity: number }>(pool: T[]): T[] => {
     if (pool.length === 0) return pool;
     const cutoff = pool.map(m => m.popularity).sort((a, b) => a - b)[Math.floor(pool.length * 0.8)];

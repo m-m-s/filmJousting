@@ -9,12 +9,9 @@ type MovieFetchingProps = {
     discoverParameters:FilterCriteria;
 };
 
-// Returns raw movies; scoring and sorting happen downstream.
 export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps) => {
     const [movies, setMovies] = useState<Movie[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    // Which search produced the current results, so Discover can warn before
-    // replacing a Letterboxd list.
     const [source, setSource] = useState<'discover' | 'letterboxd' | null>(null);
     const { showError } = useErrorModal();
 

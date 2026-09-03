@@ -15,6 +15,7 @@ export const CompactMovieList = ({ movies, selectedGenres }: CompactMovieListPro
                 const matched = selectedGenres
                     .filter(g => movie.genre_ids.includes(g.id))
                     .map(g => `${genreNameById.get(g.id) ?? g.id} (${g.weight === 5 ? 'yes' : 'maybe'})`);
+                const allGenres = movie.genre_ids.map(id => genreNameById.get(id) ?? String(id));
 
                 return (
                     <div key={movie.id} className="flex items-center gap-2 p-1">
@@ -31,6 +32,7 @@ export const CompactMovieList = ({ movies, selectedGenres }: CompactMovieListPro
                             <p className="font-bold truncate">{movie.title}</p>
                             <p>Score {movie.score.toFixed(2)} · Rating {movie.vote_average.toFixed(1)} · Popularity {movie.popularity.toFixed(0)}</p>
                             <p className="truncate">{matched.length > 0 ? matched.join(', ') : 'no genre match'}</p>
+                            <p className="truncate opacity-70">TMDB: {allGenres.length > 0 ? allGenres.join(', ') : 'none listed'}</p>
                         </div>
                     </div>
                 );

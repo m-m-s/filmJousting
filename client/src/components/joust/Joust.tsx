@@ -13,7 +13,6 @@ type JoustSnapshot = {
     finalWinner: ScoredMovie | null;
 };
 
-// Seeds first against last, so the strongest don't meet in round one.
 const bracketing = (movies: ScoredMovie[]) => {
     const bracketedMovies: [ScoredMovie, ScoredMovie][] = []
     for (let i=0; i < movies.length /2; i++){
@@ -34,6 +33,7 @@ export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
     const [currentRound, setCurrentRound] = useState<number>(0);
     const [winners, setWinners] = useState<ScoredMovie[]>([]);
     const [finalWinner, setFinalWinner] = useState<ScoredMovie | null>(null);
+    const [bracketSize, setBracketSize] = useState<number>(0);
     const [history, setHistory] = useState<JoustSnapshot[]>([]);
 
     const matchUp = bracketedMovies ? bracketedMovies[winners.length] : null;
@@ -41,6 +41,7 @@ export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
     const startJoust = (contenders: ScoredMovie[]) => {
         setHistory([]);
         setRounds(roundsFor(contenders.length));
+        setBracketSize(contenders.length);
         setCurrentRound(1);
         setBracketedMovies(bracketing(contenders));
     };
@@ -95,7 +96,7 @@ export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
                     canUndo={history.length > 0}
                 />
             )}
-            {finalWinner && <JoustWinner winner={finalWinner} />}
+            {finalWinner && <JoustWinner winner={finalWinner} beaten={bracketSize - 1} />}
         </div>
     );
 };

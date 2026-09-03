@@ -8,10 +8,10 @@ import { SliderOverlay } from '@/components/filters/SliderOverlay';
 import { Button } from '@/components/ui/Button';
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { Modal } from '@/components/ui/Modal'
-import { MovieCard } from '@/components/movies/MovieCard';
 import { CompactMovieList } from '@/components/movies/CompactMovieList';
+import { ResultsGrid } from '@/components/movies/ResultsGrid';
 import { formatMins } from '@/lib/utils'
-import { makeSelectionHandler , genreSplit, sortMovies, dropMostPopular } from '@/lib/filters';
+import { makeSelectionHandler , genreSplit, sortMovies, dropMostPopular, applyFilters } from '@/lib/filters';
 import { scoreMovies } from '@/lib/scoring';
 import { Joust } from '@/components/joust/Joust';
 import { FilterButton } from '@/components/filters/FilterButton';
@@ -19,6 +19,7 @@ import { LoadingAnimation } from '@/components/ui/LoadingAnimation';
 import { VineDivider } from '@/components/ui/VineDivider';
 import { About } from '@/components/About';
 import { MovieFetching } from '@/hooks/MovieFetching';
+import { useErrorModal } from '@/hooks/useErrorModal';
 import joustKnight from '@/assets/joustKnight.svg';
 import helmet from '@/assets/helmet.svg';
 import birdEmblem from '@/assets/emblem.svg';
@@ -56,8 +57,6 @@ function App() {
 
   const { options: keywordOptions, isLoading: keywordLoading } = useDebouncedSearch(keywordQuery, 'keyword');
 
-  // Memoized: scoring reads this during render, so it needs a stable identity
-  // for the dependency comparison below to work.
   const discoverParameters: FilterCriteria = useMemo(() => ({
     ...genreSplit(genreSelect),
     languages: languageSelect.map(String),
@@ -72,6 +71,7 @@ function App() {
   }), [genreSelect, languageSelect, keywordSelect, peopleSelect, ratingRange, runtimeRange, releaseDateRange, obscure]);
 
   const {movies, isLoading, discover, listScraping, source} = MovieFetching({listUrls, discoverParameters});
+  const { showError } = useErrorModal();
 
   const updateListUrl = (index: number, value: string) =>
     setListUrls(prev => prev.map((url, i) => (i === index ? value : url)));
@@ -106,8 +106,6 @@ const sortOptions: {key: SortKey, label: string}[] =[
 const resultsTopRef = useRef<HTMLDivElement>(null);
 const scrollSpacerRef = useRef<HTMLDivElement>(null);
 
-// Discovering again on unchanged filters walks forward a page; changing any
-// filter starts over at page 1.
 const lastDiscoverRef = useRef<string | null>(null);
 const discoverPageRef = useRef(1);
 
@@ -124,14 +122,28 @@ const runDiscover = () => {
   discover(discoverPageRef.current);
 };
 
-// Discovering throws away a Letterboxd list that took a while to build, so
-// check first rather than silently replacing it.
 const handleDiscover = () => {
   if (source === 'letterboxd' && movies.length > 0) {
     setActiveModal('discoverConfirm');
     return;
   }
   runDiscover();
+};
+
+const searchDisabledReason = !hasListUrl
+  ? 'LETTERBOXD_MISSING_PARAMS'
+  : discoverParameters.genres.length === 0
+    ? 'SEARCH_MISSING_GENRES'
+    : null;
+
+const handleListSearch = () => {
+  if (searchDisabledReason) {
+    showError(searchDisabledReason);
+    return;
+  }
+  setCurrentPage(1);
+  setLoadingDismissed(false);
+  listScraping();
 };
 
 const goToPage = (page: number) => {
@@ -162,9 +174,8 @@ useEffect(() => {
   };
 }, [currentPage, movies]);
 
-// Client-side so a toggle re-ranks without a re-fetch.
 const resultPool = useMemo(() => {
-  const scored = scoreMovies(movies, discoverParameters);
+  const scored = scoreMovies(applyFilters(movies, discoverParameters), discoverParameters);
   return excludePopular ? dropMostPopular(scored) : scored;
 }, [movies, excludePopular, discoverParameters]);
 
@@ -204,11 +215,11 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
                     );
                   })
             }
-                childern={<WeightedFilterOverlay options={GENRES} selected={genreSelect} onSelect={makeSelectionHandler(setGenreSelect)}/>}/>
+                children={<WeightedFilterOverlay options={GENRES} selected={genreSelect} onSelect={makeSelectionHandler(setGenreSelect)}/>}/>
 
        <FilterButton name={'Rating'} isOpen={activeModal === 'rating'} clickAction={() => setActiveModal('rating')} onClose={() => setActiveModal(null)}
           info={<span className="text-sm">{ratingRange[0]} - {ratingRange[1]}</span>}
-          childern={
+          children={
             <div>
             <h1 className='text-center text-lg font-bold underline underline-offset-6'>Rating</h1>
             <SliderOverlay value={ratingRange} onValueChange={setRatingRange} min={0} max={10} step={.5} />
@@ -218,7 +229,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
         <FilterButton name={'Runtime'} isOpen={activeModal === 'runtime'} clickAction={() => setActiveModal('runtime')} onClose={() => setActiveModal(null)}
           info={<span className="text-sm">{formatMins(runtimeRange[0])} - {runtimeRange[1] >= 300 ? '5hr+' : formatMins(runtimeRange[1])}</span>}
-          childern={
+          children={
             <div>
             <h1 className='text-center text-lg font-bold underline underline-offset-5'>Runtime</h1>
             <SliderOverlay value={runtimeRange} onValueChange={setRuntimeRange} min={0} max={300} step={15} formatValue={(n) => (n >= 300 ? '5hr+' : formatMins(n))}/>
@@ -228,7 +239,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
         <FilterButton name={'Released'} isOpen={activeModal === 'releaseDate'} clickAction={() => setActiveModal('releaseDate')} onClose={() => setActiveModal(null)} buttonClassName="max-w-28 sm:max-w-none"
           info={<span className="text-sm">{releaseDateRange[0]} - {releaseDateRange[1]}</span>}
-          childern={
+          children={
             <div>
             <h1 className='text-center text-lg font-bold underline underline-offset-5'>Release Date</h1>
             <SliderOverlay value={releaseDateRange} onValueChange={setReleaseDateRange} min={1900} max={new Date().getFullYear()} step={10} />
@@ -244,9 +255,9 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         </div>
         <div className="flex flex-col items-center mt-4">
           <div className="group relative flex items-center w-min mx-auto">
-            <img src={helmet} alt="" className="absolute right-full mr-0.5 h-6 w-auto -scale-x-100 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-            <Button onClick={() => setAdvFilterState(!advFilterState)} className={`text-sm no-underline hover:underline ${advFilterState ? 'underline' : ''}`}>Advanced Filters</Button>
-            <img src={helmet} alt="" className="absolute left-full ml-0.5 h-6 w-auto opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            <img src={helmet} alt="" className={`absolute right-full mr-0.5 h-6 w-auto transition duration-300 pointer-events-none ${advFilterState ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 -scale-x-100'}`} />
+            <Button onClick={() => setAdvFilterState(!advFilterState)} aria-expanded={advFilterState} className='text-sm no-underline hover:underline'>Advanced Filters</Button>
+            <img src={helmet} alt="" className={`absolute left-full ml-0.5 h-6 w-auto transition duration-300 pointer-events-none ${advFilterState ? 'opacity-100 -scale-x-100' : 'opacity-0 group-hover:opacity-100'}`} />
           </div>
         </div>
         </div>
@@ -263,7 +274,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           )}
         </span>
       )}
-      childern={
+      children={
         <>
           <span className="text-md sm:text-sm">Languages:</span>
           <InputOverlay
@@ -285,7 +296,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
             <Button variant='selected' key={k.id} onClick={()=>setKeywordSelect(keywordSelect.filter(f=> f.id !== k.id))}>{k.name}</Button>)}
         </span>
       )}
-      childern={
+      children={
         <>
           <span className="text-md">Keyword:</span>
           <InputOverlay
@@ -307,7 +318,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
             <Button key={p.id} variant='selected' onClick={()=>setPeopleSelect(peopleSelect.filter(f=> f.id !== p.id))}>{p.name}</Button>)}
         </span>
       )}
-      childern={
+      children={
         <>
           <span className="text-md">People:</span>
           <InputOverlay
@@ -362,13 +373,14 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
             className = "flex-1 min-w-0 border-3 border-black my-2 px-2 py-1 bg-white text-black focus:outline-none focus:ring-2 focus:ring-red-500"
             value = {url}
             onChange={(e) => updateListUrl(index, e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleListSearch(); }}
             aria-label={`Letterboxd list URL or username ${index + 1}`}
             placeholder="List URL or Username"
           />
           {index === 0 ? (
           <>
             <Button variant="search" onClick={addListUrl} aria-label="Add another list" className="font-bold -mx-1 px-2">+</Button>
-            <Button variant="search" onClick={() => { setCurrentPage(1); setLoadingDismissed(false); listScraping(); }} disabled={!hasListUrl || discoverParameters.genres.length === 0} disabledReason={!hasListUrl ? 'LETTERBOXD_MISSING_PARAMS' : 'SEARCH_MISSING_GENRES'}>Search</Button>
+            <Button variant="search" onClick={handleListSearch} disabled={searchDisabledReason !== null} disabledReason={searchDisabledReason ?? undefined}>Search</Button>
           </>
           ) : (
             <Button variant="sort" onClick={() => removeListUrl(index)} aria-label="Remove this list">×</Button>
@@ -470,9 +482,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           )
         ) : (
         <>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 sm:gap-y-5 mx-2">
-          {visibleMovies.map(m=> <MovieCard key={m.id} id={m.id} poster={m.poster_path} title={m.title} overview={m.overview} rating={m.vote_average} voteCount={m.vote_count} releaseDate={m.release_date}/>)}
-        </div>
+        <ResultsGrid key={`${currentPage}-${movies.length}-${movies[0]?.id ?? 0}`} movies={visibleMovies} />
 
         <hr className="border-t-2 border-black mt-3" />
 

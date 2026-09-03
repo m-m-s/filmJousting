@@ -4,9 +4,6 @@ import { AppError } from '../errors.js';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = process.env.TMDB_API_KEY;
 
-// Callers declare the shape they expect. TypeScript cannot verify what TMDB
-// actually sends — this is a claim, not a runtime check — but it keeps every
-// consumer honest about the fields it uses.
 export async function tmdbFetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const url = new URL(`${BASE_URL}${endpoint}`);
   url.searchParams.append('api_key', API_KEY || '');
@@ -29,9 +26,6 @@ export async function tmdbFetch<T>(endpoint: string, params: Record<string, stri
     if (response.status === 429) {
       throw new AppError('TMDB_RATE_LIMITED', 429, 'TMDB rate limit hit (429)');
     }
-    // Carry the real upstream status through as a generic AppError so route
-    // handlers can inspect `.status` (e.g. a 404 on /movie/{id}) and pick a
-    // more specific user-facing code than this shared fetch helper can know.
     throw new AppError('TMDB_UNREACHABLE', response.status, `TMDB API error: ${response.status} ${response.statusText}`);
   }
     return response.json() as Promise<T>;
@@ -48,7 +42,7 @@ export async function fetchRandomPages<T>(endpoint: string, params: Record<strin
   return pages.flatMap(p=>p.results);
 }
 
-export function deDuplicate(movies:Movie[]){
+export function deDuplicate<T extends Movie>(movies: T[]): T[] {
     const existingIds = new Set<number>();
     return movies.filter(movie => {
         if (existingIds.has(movie.id)){

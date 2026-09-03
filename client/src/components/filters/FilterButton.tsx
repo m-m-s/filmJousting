@@ -9,12 +9,12 @@ type FilterButtonProps = {
     onClose: () => void;
     align?: 'center' | 'top';
     info?: React.ReactNode;
-    childern?: React.ReactNode;
+    children?: React.ReactNode;
     buttonClassName?: string;
     topOffsetClass?: string;
 };
 
-export const FilterButton = ({name, isOpen, clickAction, onClose, info, align, childern, buttonClassName, topOffsetClass}: FilterButtonProps) => {
+export const FilterButton = ({name, isOpen, clickAction, onClose, info, align, children, buttonClassName, topOffsetClass}: FilterButtonProps) => {
     return (
         <div className="flex flex-col items-center">
             <div className="group relative flex items-center w-fit mx-auto">
@@ -24,7 +24,7 @@ export const FilterButton = ({name, isOpen, clickAction, onClose, info, align, c
             </div>
                 {info}
             <Modal isOpen= {isOpen} onClose= {onClose} align={align} topOffsetClass={topOffsetClass} label={name}>
-                {childern}
+                {children}
                 </Modal>
         </div>
     );

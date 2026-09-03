@@ -7,19 +7,12 @@ import type { ListMovie } from '../types.js';
 
 const router = Router();
 
-// Every failure path — validation, upstream TMDB/Letterboxd errors, or a
-// genuinely unexpected bug — ends up going through this. AppError instances
-// carry their own code/status (thrown deliberately from a service); anything
-// else is logged in full here (this is where a bug tracker like Sentry would
-// be wired in) and the client only ever sees the generic fallback code, never
-// the raw error/stack trace.
 function sendError(res: Response, error: unknown, fallbackCode: ErrorCode, logLabel: string) {
   if (error instanceof AppError) {
     console.error(`[${error.code}] ${logLabel}:`, error.message);
     res.status(error.status).json({ error: { code: error.code, message: error.message } });
     return;
   }
-  // TODO: send `error` to a bug tracker (Sentry, etc.) once this is live.
   console.error(`[${fallbackCode}] ${logLabel}:`, error);
   res.status(500).json({ error: { code: fallbackCode, message: 'Unexpected server error' } });
 }
@@ -58,9 +51,6 @@ router.get('/movie/:id', async (req, res) => {
     const details = await getMovieDetails(req.params.id);
     res.json(details);
   } catch (error) {
-    // tmdbFetch surfaces a 404 (bad/removed movie id) as a generic AppError
-    // carrying the real upstream status — recognize that specific case here
-    // rather than letting it fall through to the generic fallback below.
     if (error instanceof AppError && error.status === 404) {
       sendError(res, new AppError('MOVIE_DETAILS_NOT_FOUND', 404, error.message), 'MOVIE_DETAILS_FAILED', `Movie ${req.params.id} not found`);
       return;
@@ -77,8 +67,6 @@ router.post('/discover', async (req, res) => {
       return;
     }
     const results = await discoverMovies(filters);
-    // Scoring and sorting are the client's job; de-duplication belongs here
-    // because it stitches together the multi-page fetch above.
     res.json(deDuplicate(results));
   } catch (error) {
     sendError(res, error, 'DISCOVER_FAILED', 'Failed to discover movies');
@@ -104,9 +92,6 @@ router.post('/letterboxdList', async (req, res) => {
       return;
     }
 
-    // Counted per resolved TMDB id, not per title, so the same film spelled two
-    // ways across two lists still registers as a match. The inner Set stops one
-    // list crediting a film twice for the same reason.
     const listMatches = new Map<number, number>();
     for (const listTitles of scraped) {
       const idsOnThisList = new Set<number>();

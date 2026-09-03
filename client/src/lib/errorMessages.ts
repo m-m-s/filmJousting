@@ -1,7 +1,3 @@
-// Mirrors server/src/errors.ts's ErrorCode union, plus a couple of codes
-// that only ever happen client-side (the fetch call itself never reached
-// the server at all). Keep this list in sync with the server's when adding
-// a new code there.
 export type ErrorCode =
   | 'DISCOVER_MISSING_GENRES'
   | 'DISCOVER_FAILED'
@@ -31,8 +27,6 @@ export type ErrorCode =
           | 'CONTACT_FAILED'
           | 'UNKNOWN';
 
-// User-facing copy only. No status codes, endpoint names, or stack traces —
-// those go to console.error (and eventually a bug tracker) instead, never here.
 const ERROR_MESSAGES: Record<ErrorCode, string> = {
   DISCOVER_MISSING_GENRES: 'Pick at least one genre before discovering!',
   DISCOVER_FAILED: "We couldn't load movies for those filters. Please try again.",
@@ -63,9 +57,6 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   UNKNOWN: 'Something went wrong. Please try again.',
 };
 
-// Codes that aren't really "errors" — nothing failed, they're just guidance
-// (e.g. why a disabled button won't do anything yet). The modal skips the
-// "Something went wrong" heading for these and shows the message alone.
 const NOTICE_CODES = new Set<ErrorCode>(['JOUST_NO_MOVIES', 'JOUST_NOT_ENOUGH_MOVIES', 'DISCOVER_MISSING_GENRES', 'SEARCH_MISSING_QUERY', 'SEARCH_MISSING_GENRES', 'LETTERBOXD_MISSING_PARAMS', 'CONTACT_MISSING_MESSAGE', 'NO_RESULTS']);
 
 export function isNoticeCode(code: ErrorCode | string | undefined): boolean {
@@ -79,17 +70,11 @@ export function getErrorMessage(code: ErrorCode | string | undefined): string {
   return ERROR_MESSAGES.UNKNOWN;
 }
 
-// Pulls the {code, message} our server routes always respond with out of a
-// failed Response, falling back gracefully if the body isn't in that shape
-// (e.g. a proxy/host returning its own HTML error page instead of JSON).
 export async function getErrorCodeFromResponse(response: Response): Promise<ErrorCode> {
   try {
     const data = await response.json();
-    if (data?.error?.code) {
-      return data.error.code as ErrorCode;
-    }
+    return (data?.error?.code as ErrorCode) ?? 'UNKNOWN';
   } catch {
-    // response body wasn't JSON — fall through to UNKNOWN
+    return 'UNKNOWN';
   }
-  return 'UNKNOWN';
 }

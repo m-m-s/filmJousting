@@ -1,12 +1,9 @@
 import * as cheerio from 'cheerio';
-import { searchTMDB } from './tmdbService';
+import { searchTMDB, getMovieDetails } from './tmdbService';
 import { AppError } from '../errors.js';
-import type { Movie } from '../types';
+import type { ListMovie } from '../types';
 
 export async function scrapeLetterboxd(url: string) {
-    // A bare username means that person's watchlist, which is otherwise a URL
-    // nobody can guess. A scheme-less paste is the other common shape, and
-    // neither survives new URL() on its own.
     const trimmed = url.trim();
     if (/^[A-Za-z0-9_]+$/.test(trimmed)) {
         url = `https://letterboxd.com/${trimmed}/watchlist/`;
@@ -23,8 +20,6 @@ export async function scrapeLetterboxd(url: string) {
         throw new AppError('LETTERBOXD_INVALID_URL', 400, `Not a valid URL: ${url}`);
     }
 
-    // Sharing a list from the Letterboxd app gives a boxd.it short link. Only
-    // the Location header is wanted, so the redirect isn't followed.
     if (parsed.hostname === 'boxd.it' || parsed.hostname === 'www.boxd.it') {
         let location: string | null;
         try {
@@ -47,10 +42,6 @@ export async function scrapeLetterboxd(url: string) {
         throw new AppError('LETTERBOXD_INVALID_URL', 400, `Not a letterboxd.com URL: ${parsed.toString()}`);
     }
 
-    // People copy the URL of whatever view they were looking at, but Letterboxd
-    // serves 403 for page 2+ of any sorted or detail view (/by/popular/,
-    // /detail/, ...). Trimming back to the canonical list path keeps pagination
-    // working; the sort order doesn't matter since we rank the films ourselves.
     const segments = parsed.pathname.split('/').filter(Boolean);
     const listIndex = segments.indexOf('list');
     const watchlistIndex = segments.indexOf('watchlist');
@@ -97,19 +88,27 @@ while (currentUrl) {
     return titles;
 }
 
-// Keyed by the scraped title rather than returned flat, so the caller can still
-// tell which list each film came from once the titles have become movies.
+const LOOKUP_CONCURRENCY = 16;
+
 export async function scrapedMovieDetail(titles:string[]){
-    const byTitle = new Map<string, Movie>();
-    for (const title of titles){
+    const byTitle = new Map<string, ListMovie>();
+
+    const lookUp = async (title: string) => {
         const parts = title.split('(');
         const movieName = parts[0]!.trim();
         const year = parts[1]?.replace (')','').trim();
         const results = await searchTMDB('movie', movieName, year);
         const topResult = results[0];
-        if (topResult){
-        byTitle.set(title, topResult)
-        }
+        if (!topResult) return;
+
+        const runtime = await getMovieDetails(String(topResult.id))
+            .then(details => details.runtime)
+            .catch(() => null);
+        byTitle.set(title, { ...topResult, runtime, listMatches: 1 });
+    };
+
+    for (let i = 0; i < titles.length; i += LOOKUP_CONCURRENCY) {
+        await Promise.all(titles.slice(i, i + LOOKUP_CONCURRENCY).map(lookUp));
     }
     return byTitle;
 }

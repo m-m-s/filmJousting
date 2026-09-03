@@ -10,9 +10,6 @@
   --font-dropcap: 'Romantik', serif;
 }
 
-/* The header knights are wider than a narrow phone; clip them rather than
-   letting the page slide sideways. Both elements need it — with only body set,
-   html still scrolls the viewport. */
 html,
 body {
   overflow-x: hidden;
@@ -29,38 +26,34 @@ body{
   background-color: #FCF8F9;
 }
 
-/* One shared 4.2s cycle (3 x 1.4s slots) instead of animation-delay,
-   since delay-based staggering re-syncs once the loop period is a
-   multiple of the delay — each dot bakes its own slot's offset directly
-   into its keyframe positions instead. */
 @keyframes loadingSequence1 {
-  0%     { opacity: 0; transform: translate(0, -70px); }
+  0%     { opacity: 0; transform: translate(0, -70px); animation-timing-function: cubic-bezier(.45, .1, .75, .6); }
   6.67%  { opacity: 1; transform: translate(0, 0); }
-  21.67% { opacity: 1; transform: translate(0, 0); }
-  33.33% { opacity: 0; transform: translate(0, 0); }
-  100%   { opacity: 0; transform: translate(0, 0); }
+  26%    { opacity: 1; transform: translate(0, 0); animation-timing-function: cubic-bezier(.2, .6, .35, 1); }
+  33.33% { opacity: 0; transform: translate(0, -36px); }
+  100%   { opacity: 0; transform: translate(0, -70px); }
 }
 
 @keyframes loadingSequence2 {
   0%     { opacity: 0; transform: translate(0, 0); }
-  33.33% { opacity: 0; transform: translate(0, -70px); }
+  33.33% { opacity: 0; transform: translate(0, -70px); animation-timing-function: cubic-bezier(.45, .1, .75, .6); }
   40%    { opacity: 1; transform: translate(0, 0); }
-  55%    { opacity: 1; transform: translate(0, 0); }
-  66.67% { opacity: 0; transform: translate(0, 0); }
+  59%    { opacity: 1; transform: translate(0, 0); animation-timing-function: cubic-bezier(.2, .6, .35, 1); }
+  66.67% { opacity: 0; transform: translate(0, -36px); }
   100%   { opacity: 0; transform: translate(0, 0); }
 }
 
 @keyframes loadingSequence3Mirrored {
   0%     { opacity: 0; transform: translate(0, 0) scaleX(-1); }
-  66.67% { opacity: 0; transform: translate(0, -70px) scaleX(-1); }
+  66.67% { opacity: 0; transform: translate(0, -70px) scaleX(-1); animation-timing-function: cubic-bezier(.45, .1, .75, .6); }
   73.33% { opacity: 1; transform: translate(0, 0) scaleX(-1); }
-  88.33% { opacity: 1; transform: translate(0, 0) scaleX(-1); }
+  92.33% { opacity: 1; transform: translate(0, 0) scaleX(-1); animation-timing-function: cubic-bezier(.45, .1, .75, .6); }
   100%   { opacity: 0; transform: translate(-80px, 0) scaleX(-1); }
 }
 
 .loading-dot {
   animation-duration: 3.6s;
-  animation-timing-function: cubic-bezier(.34, 1.56, .64, 1);
+  animation-timing-function: cubic-bezier(.45, .1, .75, .6);
   animation-iteration-count: infinite;
   opacity: 0;
 }
@@ -140,11 +133,6 @@ body{
      0 0 6px #FCF8F9;
 }
 
-/* The crown bobs above the winning card, as though hovering there.
-   Deliberately no translateX here: Tailwind v4 compiles -translate-x-1/2 to the
-   standalone `translate` property, not to `transform`. The two are separate
-   properties that both apply, so repeating the centering in this keyframe would
-   shift the crown left by half its width on top of the class already doing it. */
 @keyframes crownFloat {
   0%   { transform: translateY(0)    rotate(-5deg); }
   50%  { transform: translateY(-7px) rotate(5deg); }
@@ -159,5 +147,47 @@ body{
 @media (prefers-reduced-motion: reduce) {
   .crown-float {
     animation: none;
+  }
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes crownDrop {
+  0%   { opacity: 0; transform: translateY(-30px) rotate(-20deg); }
+  65%  { opacity: 1; transform: translateY(4px)   rotate(4deg); }
+  100% { opacity: 1; transform: translateY(0)     rotate(-5deg); }
+}
+
+.champion-card { animation: riseIn 320ms cubic-bezier(.2, .8, .3, 1) backwards; }
+.champion-line { animation: riseIn 280ms cubic-bezier(.2, .8, .3, 1) backwards; }
+.champion-crown {
+  animation:
+    crownDrop 420ms cubic-bezier(.2, .8, .3, 1) 140ms both,
+    crownFloat 4s ease-in-out 560ms infinite;
+  will-change: transform;
+}
+
+@keyframes queueIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-in { opacity: 0; }
+.cards-revealed .card-in { opacity: 1; animation: queueIn 300ms ease-out backwards; }
+.matchup-in { animation: riseIn 220ms ease-out backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .champion-card,
+  .champion-line,
+  .champion-crown,
+  .cards-revealed .card-in,
+  .matchup-in {
+    animation: none;
+  }
+  .card-in {
+    opacity: 1;
   }
 }

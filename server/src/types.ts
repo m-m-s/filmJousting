@@ -1,18 +1,12 @@
-// Priority weight for positive filters (4-point scoring scale)
 type FilterPriority = 5 | 3 | 1; // must_have=5, prefer=3, nice_to_have=1
 
-// Veto strength for negative filters
 type VetoStrength = 'hard' | 'soft'; // hard = binary elimination, soft = -3 scoring penalty
 
-// A vetoed genre with its strength
 interface WeightedVeto {
   genreId: number;
   strength: VetoStrength; // 'hard' = eliminate before scoring, 'soft' = -3 penalty in scoring
 }
 
-// Exactly what TMDB's /discover and /search return. Detail-only fields
-// (runtime, genre objects, countries, certification) come from /movie/{id}
-// and are deliberately absent rather than promised and never delivered.
 export interface Movie {
   id: number;
   title: string;
@@ -26,8 +20,6 @@ export interface Movie {
   vote_count: number;
 }
 
-
-// Movie with scoring data attached
 export interface ScoredMovie extends Movie {
   score: number;      // calculated by scoring engine
 }
@@ -37,9 +29,6 @@ export interface Genre {
   name: string;
 }
 
-// /movie/{id}. Deliberately not extending Movie: the detail endpoint returns
-// full genre objects where search and discover return genre_ids, so it isn't
-// a superset.
 export interface MovieDetails {
   id: number;
   title: string;
@@ -47,20 +36,17 @@ export interface MovieDetails {
   genres: Genre[];
 }
 
-// A Movie from a Letterboxd search, carrying how many of the searched lists it
-// appeared on. Always 1 for a single-list search.
 export interface ListMovie extends Movie {
   listMatches: number;
+  runtime: number | null;
 }
 
-// The envelope /discover and /search both wrap their results in.
 export interface TMDBPage<T> {
   page: number;
   results: T[];
   total_pages: number;
   total_results: number;
 }
-
 
 export interface Keyword {
   id: number;               // TMDB keyword ID
@@ -81,16 +67,13 @@ interface WeightedFilter<T> {
 }
 
 export interface FilterCriteria {
-  // Required — Yes/Maybe weighted, sent to TMDB with OR logic
   genres: WeightedFilter<number>[];
 
-  // Required — hard filter, no weight
   vetoedGenres: number[];
   languages: string[];
   minRating: number;          // default: 6
   maxRating?: number;
 
-  // Optional — hard filters
   keywords?: number[];
   people?: {
     id: number;
@@ -98,19 +81,14 @@ export interface FilterCriteria {
   }[];
   obscure?: boolean;        // when true, vote_count.lte = 200
 
-  // Optional — scoring only, not sent to TMDB
   runtimeRange?: { min?: number; max?: number };
   releaseYearRange?: { from?: number; to?: number };
 
-  // Controls
   sortBy: 'popularity.desc' | 'vote_average.desc';
-  // Which ranked page to draw from; advances when Discover is pressed again
-  // with unchanged filters.
   page?: number;
   filterForMe?: boolean;
 }
 
-// v2 additions
 interface MovieSubmission extends ScoredMovie {
   submitted_by: string[];     // session_ids (v3)
   submission_count: number;   // how many players submitted (v3)
@@ -129,7 +107,6 @@ interface Matchup {
   is_tie: boolean;
 }
 
-// v3 additions
 interface Room {
   room_id: string;
   host_session_id: string;

@@ -5,9 +5,6 @@ const router = Router();
 const MAX_MESSAGE = 2000;
 const MAX_CONTACT = 200;
 
-// A public POST endpoint gets found by bots, so: a hidden field real people
-// never fill in, and a cap on how often one address can post. In memory, so it
-// resets whenever Render restarts — fine for a form nobody should be hammering.
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 3;
 const recent = new Map<string, number[]>();
@@ -18,7 +15,6 @@ function rateLimited(ip: string) {
   if (hits.length >= MAX_PER_WINDOW) return true;
   hits.push(now);
   recent.set(ip, hits);
-  // Without this the map grows for every IP that ever posts.
   if (recent.size > 500) {
     for (const [key, times] of recent) {
       if (times.every(t => now - t >= WINDOW_MS)) recent.delete(key);
@@ -30,7 +26,6 @@ function rateLimited(ip: string) {
 router.post('/', async (req, res) => {
   const { message, contact, website } = req.body ?? {};
 
-  // Honeypot: answer as though it worked so a bot has nothing to learn.
   if (typeof website === 'string' && website.trim().length > 0) {
     res.json({ ok: true });
     return;
@@ -61,7 +56,6 @@ router.post('/', async (req, res) => {
     const response = await fetch(webhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // allowed_mentions none: a message containing @everyone shouldn't ping.
       body: JSON.stringify({
         content: `**Film Jousting — new message**\nFrom: ${from}\n\n${message.trim()}`.slice(0, 1900),
         allowed_mentions: { parse: [] },

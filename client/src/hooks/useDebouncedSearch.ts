@@ -3,7 +3,6 @@ import { useErrorModal } from '@/hooks/useErrorModal';
 import { getErrorCodeFromResponse } from '../lib/errorMessages';
 import { API_URL } from '../config';
 
-// Person and keyword results share id/name; only people carry a department.
 type SearchResult = {
   id: number;
   name: string;
@@ -35,8 +34,6 @@ export const useDebouncedSearch = (query: string, subject: 'person' | 'keyword')
         setOptions(data);
 
       } catch (error) {
-        // A cancelled request (fast typing superseding this one) isn't a
-        // real failure — the AbortController rejects with this on purpose.
         if (error instanceof DOMException && error.name === 'AbortError') return;
         showError('NETWORK_UNREACHABLE', error);
       } finally {
@@ -48,7 +45,6 @@ export const useDebouncedSearch = (query: string, subject: 'person' | 'keyword')
         clearTimeout(timeoutId);
         controller.abort();
       };
-      // showError is useCallback'd in the provider, so listing it is safe.
     }, [query, subject, showError]);
 
     return { options, isLoading };

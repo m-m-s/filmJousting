@@ -1,5 +1,3 @@
-// Machine-readable error codes shared (by convention) with the client's
-// errorMessages.ts. Keep this list and that one in sync when adding a code.
 export type ErrorCode =
   | 'DISCOVER_MISSING_GENRES'
   | 'DISCOVER_FAILED'
@@ -23,10 +21,6 @@ export type ErrorCode =
   | 'CONTACT_RATE_LIMITED'
   | 'CONTACT_FAILED';
 
-// Thrown anywhere in a service to carry a specific error code up to the
-// route handler. Anything else that's thrown (a raw TypeError, etc.) is
-// treated as an unexpected failure and mapped to a generic *_FAILED code
-// by the route's catch block.
 export class AppError extends Error {
   code: ErrorCode;
   status: number;

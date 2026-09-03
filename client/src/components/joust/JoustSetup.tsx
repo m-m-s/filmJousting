@@ -18,7 +18,6 @@ const sortOptions: {key: SortKey, label: string}[] =[
     { key: 'popularity', label: 'Popularity' },
 ];
 
-
 type JoustToggleProps = {
     checked: boolean;
     onChange: (checked: boolean) => void;

@@ -1,7 +1,5 @@
 import type { Options } from '../types';
 
-// ISO 639-1 codes, roughly ordered by global film relevance/popularity.
-// Worth spot-checking against TMDB's actual /configuration/languages endpoint later.
 export const LANGUAGES: Options[] = [
   { id: 'en', name: 'English' },
   { id: 'es', name: 'Spanish' },

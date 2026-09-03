@@ -1,6 +1,3 @@
-// Exactly what TMDB's /discover and /search return. Detail-only fields
-// (runtime, genre objects, countries, certification) come from /movie/{id}
-// and are deliberately absent rather than promised and never delivered.
 export interface Movie {
   id: number;
   title: string;
@@ -27,8 +24,6 @@ export type Options = {
 export type SelectionState = 
 'yes' | 'maybe' | 'veto';
 
-
-
 type PreferenceWeight = 5 | 3; // yes=5, maybe=3
 
 interface WeightedFilter<T> {
@@ -37,16 +32,13 @@ interface WeightedFilter<T> {
 }
 
 export interface FilterCriteria {
-  // Required — Yes/Maybe weighted, sent to TMDB with OR logic
   genres: WeightedFilter<number>[];
 
-  // Required — hard filter, no weight
   vetoedGenres: number[];
   languages: string[];
   minRating: number;          // default: 6
   maxRating?: number;
 
-  // Optional — hard filters
   keywords?: number[];
   people?: {
     id: number;
@@ -54,14 +46,10 @@ export interface FilterCriteria {
   }[];
   obscure?: boolean;        // when true, vote_count.lte = 200
 
-  // Optional — scoring only, not sent to TMDB
   runtimeRange?: { min?: number; max?: number };
   releaseYearRange?: { from?: number; to?: number };
 
-  // Controls
   sortBy: 'popularity.desc' | 'vote_average.desc';
-  // Which ranked page to draw from; advances when Discover is pressed again
-  // with unchanged filters.
   page?: number;
   filterForMe?: boolean;
 }

@@ -73,7 +73,6 @@ const ContactForm = () => {
                     onChange={(e) => setContact(e.target.value)}
                 />
             </label>
-            {/* Bots fill in every field they find; people never see this one. */}
             <input
                 className="hidden"
                 tabIndex={-1}
@@ -103,7 +102,7 @@ export const About = () => {
                     <h1 className="text-2xl font-bold">About</h1>
                     <p>Film Jousting is a site designed to help you and your friends settle the age old question of “What movie should we watch?” Set filters to search for movie recommendations from the ether (TMDB) or from within an existing Letterboxd list (this works for any person's watchlist or public list!)
                         <br></br><br></br> Still not sure which movie to watch? Run a selected top few through a head-to-head tournament bracket until one film is crowned champion!!
-                        <br></br><br></br> A passion project made by your friendly neighborhood film enthusiast. The recommendations are designed to have a degree of randomness everytime you discover. Want to see different results? Discover again and again! Happy watching!</p>
+                        <br></br><br></br> A passion project made by your friendly neighborhood film enthusiast. The recommendations are designed to have a degree of randomness every time you discover. Want to see different results? Discover again and again! Happy watching!</p>
                     <div className="flex flex-wrap justify-center gap-3">
                         <Button variant="sort" onClick={() => setModal('contact')}>Get in Touch</Button>
                         <Button variant="sort" onClick={() => setModal('credits')}>Credits</Button>

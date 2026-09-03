@@ -17,8 +17,6 @@ type MovieCardProps = {
     frame?: 'inset' | 'thin';
 };
 
-// Runtime needs its own lookup. Living in a child that mounts with the modal
-// means it starts fresh, with no stale value to reset.
 const MovieRuntime = ({ id }: { id: number }) => {
     const [runtime, setRuntime] = useState<number | 'unavailable' | null>(null);
 
@@ -33,7 +31,6 @@ const MovieRuntime = ({ id }: { id: number }) => {
             .then(data => setRuntime(data.runtime))
             .catch((error) => {
                 if (error instanceof DOMException && error.name === 'AbortError') return;
-                // Non-critical: degrade to "Unavailable" rather than interrupt.
                 console.error(`[MOVIE_DETAILS_FAILED]`, error);
                 setRuntime('unavailable');
             });

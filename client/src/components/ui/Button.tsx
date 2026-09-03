@@ -12,6 +12,7 @@ type ButtonProps = {
     disabledReason?: ErrorCode;
     className?: string;
     'aria-pressed'?: boolean;
+    'aria-expanded'?: boolean;
     'aria-label'?: string;
 };
 
@@ -24,7 +25,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   selected: 'text-sm hover:line-through'
 };
 
-export const Button = ({children, onClick, variant = 'filter', disabled, disabledReason, className, 'aria-pressed': ariaPressed, 'aria-label': ariaLabel}: ButtonProps ) => {
+export const Button = ({children, onClick, variant = 'filter', disabled, disabledReason, className, 'aria-pressed': ariaPressed, 'aria-expanded': ariaExpanded, 'aria-label': ariaLabel}: ButtonProps ) => {
     const { showError } = useErrorModal();
 
     const handleClick = () => {
@@ -41,6 +42,7 @@ export const Button = ({children, onClick, variant = 'filter', disabled, disable
             disabled={disabled && !disabledReason}
             aria-disabled={disabled}
             aria-pressed={ariaPressed}
+            aria-expanded={ariaExpanded}
             aria-label={ariaLabel}
             className={cn(
                 'p-2 disabled:opacity-50 disabled:cursor-not-allowed',
