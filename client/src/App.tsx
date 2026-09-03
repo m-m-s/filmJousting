@@ -402,7 +402,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
     <Button variant="primary" onClick={handleDiscover} disabled= {discoverParameters.genres.length === 0} disabledReason="DISCOVER_MISSING_GENRES" className='discover-border'>
       Discover
     </Button>
-    <Button variant='primary' onClick={() => setActiveModal('joust')} disabled={movies.length <= 0} disabledReason="JOUST_NO_MOVIES" className='joust-border'>
+    <Button variant='primary' onClick={() => setActiveModal('joust')} disabled={resultPool.length <= 0} disabledReason="JOUST_NO_MOVIES" className='joust-border'>
       JOUST!
     </Button>
     </div>
@@ -446,7 +446,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         {import.meta.env.DEV && compactView && pinnedMovies && (
         <Button variant="sort" onClick={() => setPinnedMovies(null)}>Unpin</Button>
         )}
-        <span className="ml-auto self-end p-2 text-xs whitespace-nowrap">Discover again to go deeper</span>
+        <span className="ml-auto self-end p-2 text-sm whitespace-nowrap">Discover again to go deeper</span>
         </div>
         {sortOverlay && <hr className="border-t-2 border-black mt-1" />}
         <div className="flex justify-center">
@@ -482,7 +482,14 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           )
         ) : (
         <>
+        {sortedMovies.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 text-center my-10 px-4">
+          <p className="text-xl font-bold">Not a single contender survived</p>
+          <p className="text-sm">Your filters ruled out every last one. Try lifting a veto, or widening the rating, runtime or year range.</p>
+        </div>
+        ) : (
         <ResultsGrid key={`${currentPage}-${movies.length}-${movies[0]?.id ?? 0}`} movies={visibleMovies} />
+        )}
 
         <hr className="border-t-2 border-black mt-3" />
 

@@ -75,7 +75,7 @@ router.post('/discover', async (req, res) => {
 
 router.post('/letterboxdList', async (req, res) => {
   try {
-    const { listUrl, listUrls } = req.body;
+    const { listUrl, listUrls, vetoedGenres } = req.body;
     const urls: string[] = (Array.isArray(listUrls) ? listUrls : [listUrl])
       .filter((url): url is string => typeof url === 'string' && url.trim().length > 0);
 
@@ -86,7 +86,8 @@ router.post('/letterboxdList', async (req, res) => {
 
     const scraped = await Promise.all(urls.map(url => scrapeLetterboxd(url)));
     const titles = [...new Set(scraped.flat())];
-    const byTitle = await scrapedMovieDetail(titles);
+    const vetoed: number[] = Array.isArray(vetoedGenres) ? vetoedGenres.filter((id: unknown): id is number => typeof id === 'number') : [];
+    const byTitle = await scrapedMovieDetail(titles, vetoed);
     if (byTitle.size === 0) {
       res.status(404).json({ error: { code: 'LETTERBOXD_NO_MATCHES', message: `Found ${titles.length} titles on the list but none matched a TMDB movie` } });
       return;

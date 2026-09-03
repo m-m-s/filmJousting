@@ -50,7 +50,7 @@ export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps
         const response = await fetch(`${API_URL}/api/tmdb/letterboxdList`, {
           method: 'POST',
           headers: { 'Content-Type' : 'application/json' },
-          body: JSON.stringify({ listUrls: urls })
+          body: JSON.stringify({ listUrls: urls, vetoedGenres: discoverParameters.vetoedGenres })
         });
         if (!response.ok) {
           const code = await getErrorCodeFromResponse(response);

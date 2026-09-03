@@ -42,6 +42,20 @@ export async function fetchRandomPages<T>(endpoint: string, params: Record<strin
   return pages.flatMap(p=>p.results);
 }
 
+export function withMovieDefaults<T extends { id: number; title: string }>(movie: T): T & Movie {
+  return {
+    overview: '',
+    release_date: '',
+    poster_path: null,
+    genre_ids: [],
+    original_language: '',
+    popularity: 0,
+    vote_average: 0,
+    vote_count: 0,
+    ...movie,
+  };
+}
+
 export function deDuplicate<T extends Movie>(movies: T[]): T[] {
     const existingIds = new Set<number>();
     return movies.filter(movie => {

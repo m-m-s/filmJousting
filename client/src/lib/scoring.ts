@@ -4,7 +4,7 @@ export const scoreMovies = (movies: (Movie & { listMatches?: number })[], filter
     movies.map(movie => {
         let score = movie.vote_average;
 
-        for (const genreId of movie.genre_ids) {
+        for (const genreId of movie.genre_ids ?? []) {
             const matchedGenre = filters.genres.find(g => g.id === genreId);
             if (matchedGenre) {
                 score *= 1 + matchedGenre.weight / 10;

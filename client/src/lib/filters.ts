@@ -2,7 +2,7 @@
 
   export const applyFilters = <T extends Movie>(movies: T[], filters: FilterCriteria): T[] =>
     movies.filter(movie => {
-      if (filters.vetoedGenres.some(id => movie.genre_ids.includes(id))) return false;
+      if (filters.vetoedGenres.some(id => (movie.genre_ids ?? []).includes(id))) return false;
       if (movie.vote_average < filters.minRating) return false;
       if (filters.maxRating !== undefined && movie.vote_average > filters.maxRating) return false;
       if (filters.languages.length > 0 && !filters.languages.includes(movie.original_language)) return false;

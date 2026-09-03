@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import { searchTMDB, getMovieDetails } from './tmdbService';
+import { withMovieDefaults } from './utils';
 import { AppError } from '../errors.js';
 import type { ListMovie } from '../types';
 
@@ -90,7 +91,7 @@ while (currentUrl) {
 
 const LOOKUP_CONCURRENCY = 16;
 
-export async function scrapedMovieDetail(titles:string[]){
+export async function scrapedMovieDetail(titles:string[], vetoedGenres: number[] = []){
     const byTitle = new Map<string, ListMovie>();
 
     const lookUp = async (title: string) => {
@@ -101,10 +102,13 @@ export async function scrapedMovieDetail(titles:string[]){
         const topResult = results[0];
         if (!topResult) return;
 
+        const movie = withMovieDefaults(topResult);
+        if (vetoedGenres.some(id => movie.genre_ids.includes(id))) return;
+
         const runtime = await getMovieDetails(String(topResult.id))
             .then(details => details.runtime)
             .catch(() => null);
-        byTitle.set(title, { ...topResult, runtime, listMatches: 1 });
+        byTitle.set(title, { ...movie, runtime, listMatches: 1 });
     };
 
     for (let i = 0; i < titles.length; i += LOOKUP_CONCURRENCY) {

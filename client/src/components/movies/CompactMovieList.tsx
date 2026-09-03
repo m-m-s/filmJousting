@@ -13,9 +13,9 @@ export const CompactMovieList = ({ movies, selectedGenres }: CompactMovieListPro
         <div className="flex flex-row flex-wrap divide-y-1 divide-black">
             {movies.map((movie) => {
                 const matched = selectedGenres
-                    .filter(g => movie.genre_ids.includes(g.id))
+                    .filter(g => (movie.genre_ids ?? []).includes(g.id))
                     .map(g => `${genreNameById.get(g.id) ?? g.id} (${g.weight === 5 ? 'yes' : 'maybe'})`);
-                const allGenres = movie.genre_ids.map(id => genreNameById.get(id) ?? String(id));
+                const allGenres = (movie.genre_ids ?? []).map(id => genreNameById.get(id) ?? String(id));
 
                 return (
                     <div key={movie.id} className="flex items-center gap-2 p-1">
