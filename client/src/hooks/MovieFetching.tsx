@@ -69,5 +69,10 @@ export const MovieFetching = ({listUrls, discoverParameters}: MovieFetchingProps
         setIsLoading(false);
       }
     };
-    return{discover, listScraping, movies, isLoading, source};
+    const clearMovies = () => {
+      setMovies([]);
+      setSource(null);
+    };
+
+    return{discover, listScraping, movies, isLoading, source, clearMovies};
 };

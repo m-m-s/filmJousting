@@ -71,7 +71,7 @@ function App() {
     sortBy: 'popularity.desc'
   }), [genreSelect, languageSelect, keywordSelect, peopleSelect, ratingRange, runtimeRange, releaseDateRange, obscure]);
 
-  const {movies, isLoading, discover, listScraping, source} = MovieFetching({listUrls, discoverParameters});
+  const {movies, isLoading, discover, listScraping, source, clearMovies} = MovieFetching({listUrls, discoverParameters});
   const { showError } = useErrorModal();
 
   const updateListUrl = (index: number, value: string) =>
@@ -150,6 +150,18 @@ const handleListSearch = () => {
   listScraping();
 };
 
+const startOver = () => {
+  resetFilters();
+  clearMovies();
+  setListUrls(['']);
+  setCurrentPage(1);
+  setSortOverlay(false);
+  setPinnedMovies(null);
+  lastDiscoverRef.current = null;
+  discoverPageRef.current = 1;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 const goToPage = (page: number) => {
   setCurrentPage(page);
   setSortOverlay(false);
@@ -201,7 +213,9 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       <link rel="preload" as="image" href={vineBlockTile} />
       <div className="flex items-center justify-center gap-0 sm:gap-2 m-2">
         <img src={joustKnight} alt="" className="h-44 w-auto -my-8 -mr-10 -scale-x-100" />
-        <h1 className="text-black-500 text-3xl sm:text-4xl font-bold text-center -mb-10">Film Jousting</h1>
+        <h1 className="text-black-500 text-3xl sm:text-4xl font-bold text-center -mb-10">
+          <button onClick={startOver} className="p-0 cursor-pointer" aria-label="Film Jousting, start over">Film Jousting</button>
+        </h1>
         <img src={joustKnight} alt="" className="h-44 w-auto -my-8 -ml-10" />
       </div>
       <VineDivider className="mt-0 mb-2" />
@@ -247,7 +261,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
           children={
             <div>
             <h1 className='text-center text-lg font-bold underline underline-offset-5'>Release Date</h1>
-            <SliderOverlay value={releaseDateRange} onValueChange={setReleaseDateRange} min={1900} max={new Date().getFullYear()} step={10} />
+            <SliderOverlay value={releaseDateRange} onValueChange={setReleaseDateRange} min={1900} max={new Date().getFullYear()} step={1} />
             </div>}
         />
 
@@ -346,7 +360,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         className={`appearance-none w-4 h-4 rounded-full bg-[#FCF8F9] bg-contain bg-no-repeat bg-center cursor-pointer ${obscure ? '' : 'border-2 border-black'}`}
         style={{ backgroundImage: obscure ? `url(${birdEmblem})` : 'none' }}
       />
-      Include extremely obscure / hidden gems
+      Include EXTREMELY obscure films
     </label>
 
     <label className="flex items-center gap-2 text-sm sm:text-lg cursor-pointer mb-3 sm:mb-0">
