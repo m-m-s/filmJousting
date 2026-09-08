@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { MovieCard } from '@/components/movies/MovieCard';
-import { Button } from '@/components/ui/Button';
 import { LoadingAnimation } from '@/components/ui/LoadingAnimation';
 import { roundName } from '@/lib/joust';
 import type { ScoredMovie } from '@/types';
@@ -10,11 +9,9 @@ type JoustMatchupProps = {
     currentRound: number;
     totalRounds: number;
     onPick: (winner: ScoredMovie) => void;
-    onUndo: () => void;
-    canUndo: boolean;
 };
 
-export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick, onUndo, canUndo }: JoustMatchupProps) => {
+export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick }: JoustMatchupProps) => {
     const posterUrl = (movie: ScoredMovie) =>
         movie.poster_path ? `https://image.tmdb.org/t/p/w185${movie.poster_path}` : null;
 
@@ -68,9 +65,6 @@ export const JoustMatchup = ({ matchUp, currentRound, totalRounds, onPick, onUnd
 
     return (
         <>
-            {canUndo && (
-                <Button variant='search' onClick={onUndo} className='fixed bottom-3 left-1/2 -translate-x-1/2 z-60 bg-[#F6F3EF] text-sm leading-none'>Change your mind?</Button>
-            )}
             <p className='text-base md:text-2xl font-bold text-center underline underline-offset-1 md:mb-3'>{roundName(currentRound, totalRounds)}</p>
             <div className='matchup-in flex flex-col sm:flex-row items-center gap-3 pt-1'>
                 <div className='w-full max-w-40 sm:max-w-none sm:flex-1 sm:min-w-0 -mb-6 sm:mb-0'>

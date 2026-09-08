@@ -34,9 +34,10 @@ type ModalProps = {
     label?: string;
     historyEntry?: boolean;
     wide?: boolean;
+    below?: React.ReactNode;
 };
 
-export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass = 'max-h-[88dvh]', topOffsetClass = 'mt-[30dvh]', confirmCloseMessage, label, historyEntry = true, wide = false}: ModalProps) => {
+export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass = 'max-h-[88dvh]', topOffsetClass = 'mt-[30dvh]', confirmCloseMessage, label, historyEntry = true, wide = false, below}: ModalProps) => {
     useEffect(() => {
         if (!isOpen) return;
         openModalCount += 1;
@@ -208,6 +209,9 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
                 <VineStripHorizontal side="bottom" />
                 <VineStripVertical side="left" />
                 <VineStripVertical side="right" />
+                {below && (
+                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-12" onClick={(e) => e.stopPropagation()}>{below}</div>
+                )}
                 {confirming && (
                     <div
                         className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 px-6"

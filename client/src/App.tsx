@@ -18,6 +18,7 @@ import { FilterButton } from '@/components/filters/FilterButton';
 import { LoadingModal } from '@/components/ui/LoadingModal';
 import { VineDivider } from '@/components/ui/VineDivider';
 import { About } from '@/components/About';
+import { Welcome } from '@/components/Welcome';
 import { MovieFetching } from '@/hooks/MovieFetching';
 import { useErrorModal } from '@/hooks/useErrorModal';
 import joustKnight from '@/assets/joustKnight.svg';
@@ -40,6 +41,7 @@ function App() {
   const [releaseDateRange, setReleaseDateRange] = useState<[number, number]>([1950,new Date().getFullYear()]);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [joustInProgress, setJoustInProgress] = useState<boolean>(false);
+  const [joustUndo, setJoustUndo] = useState<(() => void) | null>(null);
   const [advFilterState, setAdvFilterState] = useState<boolean>(false);
   const [obscure, setObscure] = useState<boolean>(false);
   const [excludePopular, setExcludePopular] = useState<boolean>(false);
@@ -211,6 +213,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       <link rel="preload" as="image" href={discoverBorder} />
       <link rel="preload" as="image" href={joustBorder} />
       <link rel="preload" as="image" href={vineBlockTile} />
+      <Welcome />
       <div className="flex items-center justify-center gap-0 sm:gap-2 m-2">
         <img src={joustKnight} alt="" className="h-44 w-auto -my-8 -mr-10 -scale-x-100" />
         <h1 className="text-black-500 text-3xl sm:text-4xl font-bold text-center -mb-10">
@@ -431,8 +434,11 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       align="center"
       maxHeightClass="max-h-[92dvh]"
       label="Joust"
-      confirmCloseMessage={joustInProgress ? 'Leaving now loses your bracket!' : undefined}>
-      <Joust movies={resultPool} onInProgressChange={setJoustInProgress}/>
+      confirmCloseMessage={joustInProgress ? 'Leaving now loses your bracket!' : undefined}
+      below={joustUndo && (
+        <Button variant='search' onClick={joustUndo} className='bg-[#F6F3EF] text-sm leading-none whitespace-nowrap'><span className='font-bold text-base'>←</span> Change your mind?</Button>
+      )}>
+      <Joust movies={resultPool} onInProgressChange={setJoustInProgress} onUndoChange={(undo) => setJoustUndo(() => undo)}/>
     </Modal>
     <Modal isOpen={activeModal === 'discoverConfirm'} onClose={() => setActiveModal(null)} align="center" label="Replace your Letterboxd results?">
       <div className="flex flex-col items-center gap-3 text-start m-5">

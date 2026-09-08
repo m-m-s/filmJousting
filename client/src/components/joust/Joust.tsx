@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { JoustSetup } from './JoustSetup';
 import { roundsFor } from '@/lib/joust';
 import { JoustMatchup } from './JoustMatchup';
@@ -25,9 +25,10 @@ const bracketing = (movies: ScoredMovie[]) => {
 type JoustProps = {
     movies: ScoredMovie[];
     onInProgressChange?: (inProgress: boolean) => void;
+    onUndoChange?: (undo: (() => void) | null) => void;
 };
 
-export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
+export const Joust = ({ movies, onInProgressChange, onUndoChange }: JoustProps) => {
     const [bracketedMovies, setBracketedMovies] = useState<[ScoredMovie, ScoredMovie][]|null>();
     const [rounds, setRounds] = useState<number>(0);
     const [currentRound, setCurrentRound] = useState<number>(0);
@@ -67,7 +68,7 @@ export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
             setWinners([...winners, winner]);
         }};
 
-    const undoJoust = () => {
+    const undoJoust = useCallback(() => {
         setHistory(prev => {
             if (prev.length === 0) return prev;
             const last = prev[prev.length - 1];
@@ -78,12 +79,16 @@ export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
             setFinalWinner(last.finalWinner);
             return prev.slice(0, -1);
         });
-    };
+    }, []);
 
     const joustInProgress = currentRound > 0 && !finalWinner;
     useEffect(() => {
         onInProgressChange?.(joustInProgress);
     }, [joustInProgress, onInProgressChange]);
+
+    useEffect(() => {
+        onUndoChange?.(history.length > 0 ? undoJoust : null);
+    }, [history.length, undoJoust, onUndoChange]);
 
     return (
         <div className='flex flex-col items-center'>
@@ -97,8 +102,6 @@ export const Joust = ({ movies, onInProgressChange }: JoustProps) => {
                     currentRound={currentRound}
                     totalRounds={rounds}
                     onPick={joust}
-                    onUndo={undoJoust}
-                    canUndo={history.length > 0}
                 />
             )}
             {finalWinner && <JoustWinner winner={finalWinner} beaten={bracketSize - 1} />}
