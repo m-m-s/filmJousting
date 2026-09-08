@@ -210,7 +210,7 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
                 <VineStripVertical side="left" />
                 <VineStripVertical side="right" />
                 {below && (
-                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-12" onClick={(e) => e.stopPropagation()}>{below}</div>
+                    <div className="fixed bottom-3 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:-bottom-12" onClick={(e) => e.stopPropagation()}>{below}</div>
                 )}
                 {confirming && (
                     <div
