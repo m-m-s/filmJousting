@@ -62,9 +62,9 @@ export const MovieCard = ({id, poster, title, overview, rating, voteCount, relea
                     )}
                 </button>
             </div>
-            <div className='flex justify-end w-full'>
+            <div className='flex justify-center w-full'>
             {onClick && (
-                <Button onClick={() => setCardState(true)} className='text-xs no-underline hover:underline p-1'>*Movie Details</Button>
+                <Button onClick={() => setCardState(true)} className='text-sm underline underline-offset-2 p-1'>Movie Details</Button>
             )}
             </div>
 

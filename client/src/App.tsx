@@ -384,7 +384,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
   <VineDivider className="mt-0 mb-4" />
 
     <div className='flex flex-col items-center md:flex-row md:items-baseline'>
-      <span className="flex items-center whitespace-nowrap">
+      <span className="flex items-center whitespace-nowrap font-bold text-lg">
         Search within Letterboxd
         <Button variant="sort" onClick={() => setActiveModal('letterboxdHelp')} aria-label="About Letterboxd list search" className="font-bold w-7.5 h-7.5 p-0 -mr-7.5 md:mr-0">?</Button>
       </span>

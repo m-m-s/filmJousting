@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { sortMovies, median, dropMostPopular } from '@/lib/filters';
-import { roundsFor } from '@/lib/joust';
 import { Button } from '@/components/ui/Button';
 import crossedSwords from '@/assets/crossedSwords.svg';
 import birdEmblem from '@/assets/emblem.svg';
@@ -88,7 +87,7 @@ export const JoustSetup = ({ movies, onStart }: JoustSetupProps) => {
             <p className='text-sm text-left mb-3 max-w-xs mx-auto'>Pit your discovered movies in head-to-head matchups until one is crowned the movie to watch!</p>
             <div className='flex items-baseline gap-2 mb-2'>
                 <p className='font-bold underline-offset-6 underline'>Bracket Size</p>
-                <span className='text-sm'>— {roundsFor(bracketSize)} rounds</span>
+                <span className='text-sm'>— {bracketSize} movies</span>
             </div>
             <div className='flex flex-wrap justify-center gap-2 mb-2'>
                 {bracketOptions.map(({value, label}) => (
