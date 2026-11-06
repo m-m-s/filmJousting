@@ -17,8 +17,17 @@ type MovieCardProps = {
     frame?: 'inset' | 'thin';
 };
 
-const MovieRuntime = ({ id }: { id: number }) => {
-    const [runtime, setRuntime] = useState<number | 'unavailable' | null>(null);
+type MovieFactsProps = {
+    id: number;
+    rating: number;
+    voteCount?: number;
+    releaseDate: number | string;
+};
+
+type FetchedDetails = { runtime: number | null; directors: string[] };
+
+const MovieFacts = ({ id, rating, voteCount, releaseDate }: MovieFactsProps) => {
+    const [details, setDetails] = useState<FetchedDetails | 'unavailable' | null>(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -28,17 +37,31 @@ const MovieRuntime = ({ id }: { id: number }) => {
                 if (!res.ok) throw new Error(`movie/${id} responded ${res.status}`);
                 return res.json();
             })
-            .then(data => setRuntime(data.runtime))
+            .then(data => setDetails({ runtime: data.runtime, directors: data.directors }))
             .catch((error) => {
                 if (error instanceof DOMException && error.name === 'AbortError') return;
                 console.error(`[MOVIE_DETAILS_FAILED]`, error);
-                setRuntime('unavailable');
+                setDetails('unavailable');
             });
 
         return () => controller.abort();
     }, [id]);
 
-    return <>{runtime === null ? 'Loading...' : runtime === 'unavailable' ? 'Unavailable' : formatMins(runtime)}</>;
+    const fetchedText = (render: (d: FetchedDetails) => string) =>
+        details === null ? 'Loading...' : details === 'unavailable' ? 'Unavailable' : render(details);
+
+    const directorCount = details && details !== 'unavailable' ? details.directors.length : 1;
+
+    return (
+        <div className="w-full flex flex-col items-start px-2">
+            {directorCount > 0 && (
+            <h2><span className="font-bold pr-1">{directorCount > 1 ? 'Directors' : 'Director'}</span> {fetchedText(d => d.directors.join(', '))}</h2>
+            )}
+            <h2><span className="font-bold pr-1">Rating</span> {rating === 0 ? 'N/A' : rating.toFixed(1)} {voteCount !== undefined && <sub>with {voteCount.toLocaleString('en-US')} votes</sub>}</h2>
+            <h2><span className="font-bold pr-1">Length</span> {fetchedText(d => d.runtime ? formatMins(d.runtime) : 'Unknown')}</h2>
+            <h2><span className="font-bold pr-1">Released</span> {releaseDate === '' ? 'Coming Soon...' : formatDate(String(releaseDate))}</h2>
+        </div>
+    );
 };
 
 export const MovieCard = ({id, poster, title, overview, rating, voteCount, releaseDate, onClick, frame = 'inset'}: MovieCardProps) => {
@@ -84,11 +107,7 @@ export const MovieCard = ({id, poster, title, overview, rating, voteCount, relea
                         <img src={sword} alt="" className="flex-1 min-w-0 w-full h-auto max-w-24" />
                     </div>
                     <h1 className="text-xl font-bold">{title}</h1>
-                    <div className="w-full flex flex-col items-start px-2">
-                        <h2><span className="font-bold pr-1">Rating</span> {rating === 0 ? 'N/A' : rating.toFixed(1)} {voteCount !== undefined && <sub>with {voteCount} votes</sub>}</h2>
-                        <h2><span className="font-bold pr-1">Length</span> <MovieRuntime key={id} id={id} /></h2>
-                        <h2><span className="font-bold pr-1">Released</span> {releaseDate === '' ? 'Coming Soon...' : formatDate(String(releaseDate))}</h2>
-                    </div>
+                    <MovieFacts key={id} id={id} rating={rating} voteCount={voteCount} releaseDate={releaseDate} />
                     <p className="drop-cap px-2">{overview}</p>
                 </div>
                 </Modal>

@@ -3,7 +3,6 @@ export type ErrorCode =
   | 'DISCOVER_FAILED'
   | 'SEARCH_INVALID_TYPE'
   | 'SEARCH_MISSING_QUERY'
-  | 'SEARCH_MISSING_GENRES'
   | 'SEARCH_FAILED'
   | 'MOVIE_DETAILS_NOT_FOUND'
   | 'MOVIE_DETAILS_FAILED'
@@ -32,7 +31,6 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   DISCOVER_FAILED: "We couldn't load movies for those filters. Please try again.",
   SEARCH_INVALID_TYPE: 'Something went wrong with that search. Please try again.',
   SEARCH_MISSING_QUERY: 'Search Input Required',
-  SEARCH_MISSING_GENRES: 'Pick at least one genre before searching!',
   SEARCH_FAILED: "Search isn't working right now. Please try again in a moment.",
   MOVIE_DETAILS_NOT_FOUND: "We couldn't find details for that movie.",
   MOVIE_DETAILS_FAILED: "We couldn't load that movie's details right now.",
@@ -57,7 +55,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   UNKNOWN: 'Something went wrong. Please try again.',
 };
 
-const NOTICE_CODES = new Set<ErrorCode>(['JOUST_NO_MOVIES', 'JOUST_NOT_ENOUGH_MOVIES', 'DISCOVER_MISSING_GENRES', 'SEARCH_MISSING_QUERY', 'SEARCH_MISSING_GENRES', 'LETTERBOXD_MISSING_PARAMS', 'CONTACT_MISSING_MESSAGE', 'NO_RESULTS']);
+const NOTICE_CODES = new Set<ErrorCode>(['JOUST_NO_MOVIES', 'JOUST_NOT_ENOUGH_MOVIES', 'DISCOVER_MISSING_GENRES', 'SEARCH_MISSING_QUERY', 'LETTERBOXD_MISSING_PARAMS', 'CONTACT_MISSING_MESSAGE', 'NO_RESULTS']);
 
 export function isNoticeCode(code: ErrorCode | string | undefined): boolean {
   return !!code && NOTICE_CODES.has(code as ErrorCode);

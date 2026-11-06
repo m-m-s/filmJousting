@@ -36,6 +36,15 @@ export interface MovieDetails {
   genres: Genre[];
 }
 
+export interface CrewMember {
+  name: string;
+  job: string;
+}
+
+export interface MovieDetailsWithCredits extends MovieDetails {
+  credits: { crew: CrewMember[] };
+}
+
 export interface ListMovie extends Movie {
   listMatches: number;
   runtime: number | null;

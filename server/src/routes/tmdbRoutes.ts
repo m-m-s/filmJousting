@@ -1,5 +1,5 @@
 import { Router, type Response } from 'express';
-import { getGenres, searchTMDB, discoverMovies, getMovieDetails } from '../services/tmdbService.js';
+import { getGenres, searchTMDB, discoverMovies, getMovieDetailsWithDirectors } from '../services/tmdbService.js';
 import { scrapeLetterboxd, scrapedMovieDetail } from '../services/letterboxdService.js';
 import { deDuplicate } from '../services/utils.js';
 import { AppError, type ErrorCode } from '../errors.js';
@@ -48,7 +48,7 @@ router.get('/search/:type', async (req, res) => {
 
 router.get('/movie/:id', async (req, res) => {
   try {
-    const details = await getMovieDetails(req.params.id);
+    const details = await getMovieDetailsWithDirectors(req.params.id);
     res.json(details);
   } catch (error) {
     if (error instanceof AppError && error.status === 404) {

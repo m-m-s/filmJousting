@@ -1,4 +1,4 @@
-import type { FilterCriteria, Genre, Keyword, Movie, MovieDetails, Person, TMDBPage } from '../types'
+import type { FilterCriteria, Genre, Keyword, Movie, MovieDetails, MovieDetailsWithCredits, Person, TMDBPage } from '../types'
 import { fetchRandomPages, tmdbFetch, withMovieDefaults } from './utils'
 
 export async function getGenres() {
@@ -9,6 +9,12 @@ export async function getGenres() {
 export async function getMovieDetails(id: string) {
   const data = await tmdbFetch<MovieDetails>(`/movie/${id}`);
   return data;
+}
+
+export async function getMovieDetailsWithDirectors(id: string) {
+  const { credits, ...details } = await tmdbFetch<MovieDetailsWithCredits>(`/movie/${id}`, { append_to_response: 'credits' });
+  const directors = credits.crew.filter(person => person.job === 'Director').map(person => person.name);
+  return { ...details, directors };
 }
 
 type SearchResult = {

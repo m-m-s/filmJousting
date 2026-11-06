@@ -14,6 +14,8 @@ export const SliderOverlay = ({ value, onValueChange, min, max, step, formatValu
 
     
     return (
+        <div>
+            <p className="text-sm text-center">Drag to adjust the values below</p>
         <div className="w-full mt-13 px-3 md:min-w-[40vw]">
             <Slider.Root
                 className="relative flex items-center w-full h-5 pt-4 touch-none"
@@ -31,9 +33,10 @@ export const SliderOverlay = ({ value, onValueChange, min, max, step, formatValu
             <Slider.Thumb className="relative -top-7 left-3 block w-14 h-14 bg-contain bg-no-repeat bg-center -scale-x-100" style={{ backgroundImage: `url(${dragonEnd})` }} />
             </Slider.Root>
             <div className="flex justify-between">
-            <div className="text-lg font-medium">{formatValue(value[0])}</div>
-            <div className="text-lg font-medium">{formatValue(value[1])}</div>
+            <div className="text-lg font-bold">{formatValue(value[0])}</div>
+            <div className="text-lg font-bold">{formatValue(value[1])}</div>
             </div>
         </div>
+    </div>
     );
 };

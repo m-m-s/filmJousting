@@ -1,50 +1,31 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { WeightedFilterOverlay } from '@/components/filters/WeightedFilterOverlay';
-import { GENRES } from '@/data/genres'
-import { LANGUAGES } from '@/data/languages';
-import type { SortKey, SortDirection, SelectionState, FilterCriteria, ScoredMovie } from '@/types';
-import { InputOverlay } from '@/components/filters/InputOverlay';
-import { SliderOverlay } from '@/components/filters/SliderOverlay';
+import type { SortKey, SortDirection, ScoredMovie } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 import { Modal } from '@/components/ui/Modal'
 import { CompactMovieList } from '@/components/movies/CompactMovieList';
 import { ResultsGrid } from '@/components/movies/ResultsGrid';
-import { formatMins } from '@/lib/utils'
-import { makeSelectionHandler , genreSplit, sortMovies, dropMostPopular, applyFilters } from '@/lib/filters';
+import { sortMovies, dropMostPopular, applyFilters } from '@/lib/filters';
 import { scoreMovies } from '@/lib/scoring';
 import { Joust } from '@/components/joust/Joust';
-import { FilterButton } from '@/components/filters/FilterButton';
+import { FilterPanel } from '@/components/filters/FilterPanel';
 import { LoadingModal } from '@/components/ui/LoadingModal';
 import { VineDivider } from '@/components/ui/VineDivider';
 import { About } from '@/components/About';
 import { Welcome } from '@/components/Welcome';
 import { MovieFetching } from '@/hooks/MovieFetching';
+import { useFilters } from '@/hooks/useFilters';
 import { useErrorModal } from '@/hooks/useErrorModal';
 import joustKnight from '@/assets/joustKnight.svg';
-import helmet from '@/assets/helmet.svg';
-import birdEmblem from '@/assets/emblem.svg';
 import discoverBorder from '@/assets/discoverBorder.svg';
 import joustBorder from '@/assets/joustBorder.svg';
 import vineBlockTile from '@/assets/flowerOrnamentalBorder.svg';
+import { API_URL } from '@/config';
 
 function App() {
   const [listUrls, setListUrls] = useState<string[]>(['']);
-  const [genreSelect, setGenreSelect] = useState<Record<number, SelectionState>>({});
-  const [languageSelect, setLanguageSelect] = useState<({ id: string; name: string }[])>([]);
-  const [peopleSelect, setPeopleSelect] = useState<({ id: number; department: string, name: string }[])>([]);
-  const [peopleQuery, setPeopleQuery] = useState<string>('');
-  const [keywordSelect, setKeywordSelect] = useState<({ id: number; name: string }[])>([]);
-  const [keywordQuery, setKeywordQuery] = useState<string>('');
-  const [ratingRange, setRatingRange] = useState<[number, number]>([6,10])
-  const [runtimeRange, setRuntimeRange] = useState<[number, number]>([90,180]);
-  const [releaseDateRange, setReleaseDateRange] = useState<[number, number]>([1950,new Date().getFullYear()]);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [joustInProgress, setJoustInProgress] = useState<boolean>(false);
   const [joustUndo, setJoustUndo] = useState<(() => void) | null>(null);
-  const [advFilterState, setAdvFilterState] = useState<boolean>(false);
-  const [obscure, setObscure] = useState<boolean>(false);
-  const [excludePopular, setExcludePopular] = useState<boolean>(false);
   const [sortKey, setSortKey] = useState<SortKey>('score');
   const [sortDirection, setSortDirection] = useState<SortDirection>('descending');
   const [sortOverlay, setSortOverlay] = useState<boolean>(false);
@@ -53,25 +34,8 @@ function App() {
   const [pinnedLabel, setPinnedLabel] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const { options: peopleOptionsRaw, isLoading: peopleLoading } = useDebouncedSearch(peopleQuery, 'person');
-  const peopleOptions = (peopleOptionsRaw.map(p => ({
-        ...p,
-        department: p.known_for_department})));
-
-  const { options: keywordOptions, isLoading: keywordLoading } = useDebouncedSearch(keywordQuery, 'keyword');
-
-  const discoverParameters: FilterCriteria = useMemo(() => ({
-    ...genreSplit(genreSelect),
-    languages: languageSelect.map(String),
-    keywords: keywordSelect.map(k => k.id),
-    people: peopleSelect,
-    minRating : ratingRange[0],
-    maxRating: ratingRange[1],
-    runtimeRange: {min: runtimeRange[0], max: runtimeRange[1] >= 300 ? undefined : runtimeRange[1]},
-    releaseYearRange: { from: releaseDateRange[0], to: releaseDateRange[1] },
-    obscure,
-    sortBy: 'popularity.desc'
-  }), [genreSelect, languageSelect, keywordSelect, peopleSelect, ratingRange, runtimeRange, releaseDateRange, obscure]);
+  const filters = useFilters();
+  const { discoverParameters, excludePopular, resetFilters } = filters;
 
   const {movies, isLoading, discover, listScraping, source, clearMovies} = MovieFetching({listUrls, discoverParameters});
   const { showError } = useErrorModal();
@@ -83,20 +47,6 @@ function App() {
     setListUrls(prev => prev.filter((_, i) => i !== index));
   const hasListUrl = listUrls.some(url => url.trim());
   const [loadingDismissed, setLoadingDismissed] = useState(false);
-
-  const resetFilters = () => {
-    setGenreSelect({});
-    setLanguageSelect([]);
-    setKeywordSelect([]);
-    setKeywordQuery('');
-    setPeopleSelect([]);
-    setPeopleQuery('');
-    setRatingRange([6, 10]);
-    setRuntimeRange([90, 180]);
-    setReleaseDateRange([1950, new Date().getFullYear()]);
-    setObscure(false);
-    setExcludePopular(false);
-};
 
 const sortOptions: {key: SortKey, label: string}[] =[
   { key: 'score', label: 'Recommended' },
@@ -129,24 +79,16 @@ const runDiscover = () => {
 };
 
 const handleDiscover = () => {
-  if (source === 'letterboxd' && movies.length > 0) {
-    setActiveModal('discoverConfirm');
+  if (discoverParameters.genres.length === 0) {
+    showError('DISCOVER_MISSING_GENRES');
     return;
   }
-  runDiscover();
-};
-
-const searchDisabledReason = !hasListUrl
-  ? 'LETTERBOXD_MISSING_PARAMS'
-  : discoverParameters.genres.length === 0
-    ? 'SEARCH_MISSING_GENRES'
-    : null;
-
-const handleListSearch = () => {
-  if (searchDisabledReason) {
-    showError(searchDisabledReason);
+  if (!hasListUrl) {
+    runDiscover();
     return;
   }
+  lastDiscoverRef.current = null;
+  discoverPageRef.current = 1;
   setCurrentPage(1);
   setLoadingDismissed(false);
   listScraping();
@@ -168,6 +110,10 @@ const goToPage = (page: number) => {
   setCurrentPage(page);
   setSortOverlay(false);
 };
+
+useEffect(() => {
+  fetch(`${API_URL}/api/health`).catch(()=> {});
+}, []);
 
 useEffect(() => {
   if (scrollSpacerRef.current) {
@@ -222,164 +168,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         <img src={joustKnight} alt="" className="h-44 w-auto -my-8 -ml-10" />
       </div>
       <VineDivider className="mt-0 mb-2" />
-      <div className="flex flex-col items-center gap-3">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-10 gap-y-2 mx-5 md:mb-2 sm:gap-x-8 sm:gap-y-3">
-        <FilterButton name={'Genres'} isOpen={activeModal === 'genre'} clickAction={() => setActiveModal('genre')} onClose={() => setActiveModal(null)} align={'center'}
-        info={
-              Object.keys(genreSelect).length === 0
-                ? <p className='text-sm'>Select Genre(s)</p>
-                : Object.keys(genreSelect).map(id => {
-                    const genre = GENRES.find(g => g.id === Number(id));
-                    return (
-                      <Button key={id} variant='selected' className={genreSelect[Number(id)] === 'veto' ? 'line-through' : ''} onClick={() => makeSelectionHandler(setGenreSelect)(Number(id), undefined)}>
-                        {genre?.name}
-                      </Button>
-                    );
-                  })
-            }
-                children={<WeightedFilterOverlay options={GENRES} selected={genreSelect} onSelect={makeSelectionHandler(setGenreSelect)}/>}/>
-
-       <FilterButton name={'Rating'} isOpen={activeModal === 'rating'} clickAction={() => setActiveModal('rating')} onClose={() => setActiveModal(null)}
-          info={<span className="text-sm">{ratingRange[0]} - {ratingRange[1]}</span>}
-          children={
-            <div>
-            <h1 className='text-center text-lg font-bold underline underline-offset-6'>Rating</h1>
-            <SliderOverlay value={ratingRange} onValueChange={setRatingRange} min={0} max={10} step={.5} />
-            </div>
-          }
-       />
-
-        <FilterButton name={'Runtime'} isOpen={activeModal === 'runtime'} clickAction={() => setActiveModal('runtime')} onClose={() => setActiveModal(null)}
-          info={<span className="text-sm">{formatMins(runtimeRange[0])} - {runtimeRange[1] >= 300 ? '5hr+' : formatMins(runtimeRange[1])}</span>}
-          children={
-            <div>
-            <h1 className='text-center text-lg font-bold underline underline-offset-5'>Runtime</h1>
-            <SliderOverlay value={runtimeRange} onValueChange={setRuntimeRange} min={0} max={300} step={15} formatValue={(n) => (n >= 300 ? '5hr+' : formatMins(n))}/>
-            </div>
-          }
-        />
-
-        <FilterButton name={'Released'} isOpen={activeModal === 'releaseDate'} clickAction={() => setActiveModal('releaseDate')} onClose={() => setActiveModal(null)} buttonClassName="max-w-28 sm:max-w-none"
-          info={<span className="text-sm">{releaseDateRange[0]} - {releaseDateRange[1]}</span>}
-          children={
-            <div>
-            <h1 className='text-center text-lg font-bold underline underline-offset-5'>Release Date</h1>
-            <SliderOverlay value={releaseDateRange} onValueChange={setReleaseDateRange} min={1900} max={new Date().getFullYear()} step={1} />
-            </div>}
-        />
-
-        <div className="flex flex-col items-center mt-4">
-          <div className="group relative flex items-center w-min mx-auto">
-            <img src={helmet} alt="" className="absolute right-full mr-0.5 h-6 w-auto -scale-x-100 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-            <Button onClick={resetFilters} className='text-sm no-underline hover:underline'>Reset Filters</Button>
-            <img src={helmet} alt="" className="absolute left-full ml-0.5 h-6 w-auto opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-          </div>
-        </div>
-        <div className="flex flex-col items-center mt-4">
-          <div className="group relative flex items-center w-min mx-auto">
-            <img src={helmet} alt="" className={`absolute right-full mr-0.5 h-6 w-auto transition duration-300 pointer-events-none ${advFilterState ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 -scale-x-100'}`} />
-            <Button onClick={() => setAdvFilterState(!advFilterState)} aria-expanded={advFilterState} className='text-sm no-underline hover:underline'>Advanced Filters</Button>
-            <img src={helmet} alt="" className={`absolute left-full ml-0.5 h-6 w-auto transition duration-300 pointer-events-none ${advFilterState ? 'opacity-100 -scale-x-100' : 'opacity-0 group-hover:opacity-100'}`} />
-          </div>
-        </div>
-        </div>
-        </div>
-
-  <div className="mb-2 flex flex-wrap justify-center gap-3 md:mt-2">
-  {advFilterState &&
-  <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
-    <FilterButton name={'Languages'} isOpen={activeModal === 'language'} clickAction={() => setActiveModal('language')} onClose={() => setActiveModal(null)} buttonClassName="text-sm sm:text-lg"
-      info={languageSelect.length > 0 && (
-        <span>
-          {languageSelect.map(
-            l => <Button key={l.id} variant='selected' onClick={()=>setLanguageSelect(languageSelect.filter(f => f.id !== l.id))}>{l.name}</Button>
-          )}
-        </span>
-      )}
-      children={
-        <>
-          <span className="sm:text-sm">Languages:</span>
-          <InputOverlay
-            options={LANGUAGES}
-            selected={languageSelect}
-            onChange={setLanguageSelect}
-            placeholderText='English'
-            getValue= {(o) => ({ id: String(o.id), name: o.name ?? 'unknown' })}
-          />
-          <p className='text-sm'>*selecting a language limits the results to only the languages selected</p>
-        </>
-      }
-    />
-
-    <FilterButton name={'Keywords'} isOpen={activeModal === 'keyword'} clickAction={() => setActiveModal('keyword')} onClose={() => setActiveModal(null)} buttonClassName="text-sm sm:text-lg"
-      info={keywordSelect.length > 0 && (
-        <span>
-          {keywordSelect.map(k =>
-            <Button variant='selected' key={k.id} onClick={()=>setKeywordSelect(keywordSelect.filter(f=> f.id !== k.id))}>{k.name}</Button>)}
-        </span>
-      )}
-      children={
-        <>
-          <span>Keyword:</span>
-          <InputOverlay
-            options={keywordOptions}
-            selected={keywordSelect}
-            onChange={setKeywordSelect}
-            onQueryChange={setKeywordQuery}
-            getValue={(o) => ({id: Number(o.id), name: o.name ?? 'unknown' })}
-            placeholderText='Dragons'
-            isLoading={keywordLoading} />
-        </>
-      }
-    />
-
-    <FilterButton name={'People'} isOpen={activeModal === 'people'} clickAction={() => setActiveModal('people')} onClose={() => setActiveModal(null)} buttonClassName="text-sm sm:text-lg"
-      info={peopleSelect.length > 0 && (
-        <span>
-          {peopleSelect.map(p =>
-            <Button key={p.id} variant='selected' onClick={()=>setPeopleSelect(peopleSelect.filter(f=> f.id !== p.id))}>{p.name}</Button>)}
-        </span>
-      )}
-      children={
-        <>
-          <span>People:</span>
-          <InputOverlay
-            options={peopleOptions}
-            selected={peopleSelect}
-            onChange={setPeopleSelect}
-            onQueryChange={setPeopleQuery}
-            getValue= {(o) => ({ id: Number(o.id), department: o.department ?? 'unknown', name: o.name ?? 'unknown' })}
-            placeholderText='Drew Barrymore'
-            isLoading={peopleLoading} />
-        </>
-      }
-    />
-
-    <label className="flex items-center gap-2 text-sm sm:text-lg cursor-pointer mb-3 sm:mb-0">
-      <input
-        type="checkbox"
-        checked={obscure}
-        onChange={(e) => setObscure(e.target.checked)}
-        className={`appearance-none w-4 h-4 rounded-full bg-[#FCF8F9] bg-contain bg-no-repeat bg-center cursor-pointer ${obscure ? '' : 'border-2 border-black'}`}
-        style={{ backgroundImage: obscure ? `url(${birdEmblem})` : 'none' }}
-      />
-      Include EXTREMELY obscure films
-    </label>
-
-    <label className="flex items-center gap-2 text-sm sm:text-lg cursor-pointer mb-3 sm:mb-0">
-      <input
-        type="checkbox"
-        checked={excludePopular}
-        onChange={(e) => setExcludePopular(e.target.checked)}
-        className={`appearance-none w-4 h-4 rounded-full bg-[#FCF8F9] bg-contain bg-no-repeat bg-center cursor-pointer ${excludePopular ? '' : 'border-2 border-black'}`}
-        style={{ backgroundImage: excludePopular ? `url(${birdEmblem})` : 'none' }}
-      />
-      Exclude the most popular films
-    </label>
-
-  </div>
-  }
-  </div>
+      <FilterPanel filters={filters} activeModal={activeModal} setActiveModal={setActiveModal} />
 
   <VineDivider className="mt-0 mb-4" />
 
@@ -391,21 +180,30 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       <div className="flex flex-col w-full max-w-sm sm:max-w-lg">
         {listUrls.map((url, index) => (
         <div key={index} className="flex items-center gap-2">
-          <input
-            className = "flex-1 min-w-0 border-3 border-black my-2 px-2 py-1 bg-white text-black focus:outline-none focus:ring-2 focus:ring-red-500"
-            value = {url}
-            onChange={(e) => updateListUrl(index, e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleListSearch(); }}
-            aria-label={`Letterboxd list URL or username ${index + 1}`}
-            placeholder="List URL or Username"
-          />
+          <div className="relative flex-1 min-w-0">
+            <input
+              className={`w-full border-3 border-black my-1 pl-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-[#4E3320] pr-10 ${url.trim() ? 'bg-[#FFF4D6]' : 'bg-white'}`}
+              value = {url}
+              onChange={(e) => updateListUrl(index, e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleDiscover(); }}
+              aria-label={`Letterboxd list URL or username ${index + 1}`}
+              placeholder="List URL or Username"
+            />
+            {url && (
+              <button
+                type="button"
+                onClick={() => updateListUrl(index, '')}
+                aria-label={`Clear list ${index + 1}`}
+                className="absolute right-0 top-1/2 p-2 -translate-y-1/2 font-bold text-lg leading-none text-black/60 hover:text-black"
+              >
+                ×
+              </button>
+            )}
+          </div>
           {index === 0 ? (
-          <>
             <Button variant="search" onClick={addListUrl} aria-label="Add another list" className="font-bold -mx-1 px-2">+</Button>
-            <Button variant="search" onClick={handleListSearch} disabled={searchDisabledReason !== null} disabledReason={searchDisabledReason ?? undefined}>Search</Button>
-          </>
           ) : (
-            <Button variant="sort" onClick={() => removeListUrl(index)} aria-label="Remove this list">×</Button>
+            <Button variant="search" onClick={() => removeListUrl(index)} aria-label="Remove this list" className="font-bold -mx-1 px-2">-</Button>
           )}
         </div>
         ))}
@@ -422,7 +220,10 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
     </Modal>
     <div className='flex flex-col items-center sm:flex-row sm:items-start justify-center mt-2 sm:gap-2'>
     <Button variant="primary" onClick={handleDiscover} disabled= {discoverParameters.genres.length === 0} disabledReason="DISCOVER_MISSING_GENRES" className='discover-border'>
-      Discover
+      <span className='relative'>
+        Discover
+        {hasListUrl && <span className='absolute top-full -mt-1 left-1/2 -translate-x-1/2 text-[11px] normal-case whitespace-nowrap'>within Letterboxd {listUrls.filter(url => url.trim()).length > 1 ? 'lists' : 'list'}</span>}
+      </span>
     </Button>
     <Button variant='primary' onClick={() => setActiveModal('joust')} disabled={resultPool.length <= 0} disabledReason="JOUST_NO_MOVIES" className='joust-border'>
       JOUST!
@@ -439,15 +240,6 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         <Button variant='search' onClick={joustUndo} className='bg-[#F6F3EF] text-sm leading-none whitespace-nowrap'><span className='font-bold text-base'>←</span> Change your mind?</Button>
       )}>
       <Joust movies={resultPool} onInProgressChange={setJoustInProgress} onUndoChange={(undo) => setJoustUndo(() => undo)}/>
-    </Modal>
-    <Modal isOpen={activeModal === 'discoverConfirm'} onClose={() => setActiveModal(null)} align="center" label="Replace your Letterboxd results?">
-      <div className="flex flex-col items-center gap-3 text-start m-5">
-        <p className="text-center">Discovering now will pull movies from a TMDB search and replace your Letterboxd search.</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <Button variant="search" onClick={() => setActiveModal(null)}>Keep my list</Button>
-          <Button variant="search" onClick={() => { setActiveModal(null); runDiscover(); }}>Discover anyway</Button>
-        </div>
-      </div>
     </Modal>
 
     {isLoading && !loadingDismissed && <LoadingModal onDismiss={() => setLoadingDismissed(true)} />}
@@ -469,7 +261,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
         {import.meta.env.DEV && compactView && pinnedMovies && (
         <Button variant="sort" onClick={() => setPinnedMovies(null)}>Unpin</Button>
         )}
-        <span className="ml-auto self-end p-2 text-sm whitespace-nowrap">Discover again to go deeper</span>
+        {source === 'discover' && <span className="ml-auto self-end p-2 text-sm font-semibold text-right">Press Discover again for more obscure films!</span>}
         </div>
         {sortOverlay && <hr className="border-t-2 border-black mt-1" />}
         <div className="flex justify-center">
@@ -486,8 +278,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
 
         <hr className="border-t-2 border-black mb-3" />
 
-        {/* DEV is inlined as false in production, so this branch is dropped from
-            the bundle rather than just being unreachable. */}
+        {/* Dev only view for scoring testing */}
         {import.meta.env.DEV && compactView ? (
           pinnedMovies ? (
           <div className="flex gap-4 items-start">

@@ -19,9 +19,9 @@ export const LoadingAnimation = () => {
             <img src={knight1} alt="" className='loading-dot loading-dot-2 h-16 w-auto' />
             <img src={knight1} alt="" className='loading-dot loading-dot-1 h-16 w-auto' />
         </div>
-        {slow && (
+        {slow ? (
             <p className='text-sm text-center' aria-live='polite'>A large field of contenders.<br />Mustering them all takes a moment.</p>
-        )}
+        ): <p className='text-sm text-center' aria-live='polite'>Loading...please be patient</p>}
     </div>
     );
 }
