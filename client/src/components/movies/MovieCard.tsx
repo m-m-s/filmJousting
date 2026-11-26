@@ -96,11 +96,18 @@ export const MovieCard = ({id, poster, title, overview, rating, voteCount, relea
                     <div className="flex items-center justify-center w-full gap-2">
                         <img src={sword} alt="" className="flex-1 min-w-0 w-full h-auto max-w-24 -scale-x-100" />
                         {poster ? (
-                        <img
-                            src={`https://image.tmdb.org/t/p/w500${poster}`}
-                            alt={title}
-                            className="flex-[3] min-w-0 w-full h-auto max-w-72"
-                        />
+                        <div className="relative flex-[3] min-w-0 w-full max-w-72 aspect-2/3">
+                            <img
+                                src={`https://image.tmdb.org/t/p/w185${poster}`}
+                                alt=""
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                            <img
+                                src={`https://image.tmdb.org/t/p/w500${poster}`}
+                                alt={title}
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        </div>
                         ) : (
                         <div className="flex-[3] min-w-0 w-full max-w-72 aspect-2/3 flex items-center justify-center border-2 border-black p-2 text-center">{title}</div>
                         )}
