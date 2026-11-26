@@ -15,9 +15,9 @@ export const LoadingAnimation = () => {
     return (
     <div className='flex flex-col items-center gap-3 w-full'>
         <div className='flex flex-row justify-center items-center gap-2 w-full'>
-            <img src={knight2} alt="" className='loading-dot loading-dot-3 h-16 w-auto' />
-            <img src={knight1} alt="" className='loading-dot loading-dot-2 h-16 w-auto' />
-            <img src={knight1} alt="" className='loading-dot loading-dot-1 h-16 w-auto' />
+            <img src={knight2} alt="" className='loading-dot loading-dot-3 h-16 aspect-square' />
+            <img src={knight1} alt="" className='loading-dot loading-dot-2 h-16 aspect-[846/1001]' />
+            <img src={knight1} alt="" className='loading-dot loading-dot-1 h-16 aspect-[846/1001]' />
         </div>
         {slow ? (
             <p className='text-sm text-center' aria-live='polite'>A large field of contenders.<br />Mustering them all takes a moment.</p>

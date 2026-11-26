@@ -242,7 +242,7 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       <Joust movies={resultPool} onInProgressChange={setJoustInProgress} onUndoChange={(undo) => setJoustUndo(() => undo)}/>
     </Modal>
 
-    {isLoading && !loadingDismissed && <LoadingModal onDismiss={() => setLoadingDismissed(true)} />}
+    {!loadingDismissed && <LoadingModal isLoading={isLoading} onDismiss={() => setLoadingDismissed(true)} />}
 
     <div>
     {movies.length > 0 &&
