@@ -8,7 +8,7 @@ const vineTiles = Array.from({ length: 26 }).map((_, i) => (
 ));
 
 const VineStripHorizontal = ({ side }: { side: 'top' | 'bottom' }) => (
-    <div className={`bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] absolute left-0 right-0 h-5 overflow-hidden ${side === 'top' ? 'top-0' : 'bottom-0'}`}>
+    <div className={`bg-[url('/paper.webp')] absolute left-0 right-0 h-5 overflow-hidden ${side === 'top' ? 'top-0' : 'bottom-0'}`}>
         <div className="flex">
             {vineTiles}
         </div>
@@ -16,7 +16,7 @@ const VineStripHorizontal = ({ side }: { side: 'top' | 'bottom' }) => (
 );
 
 const VineStripVertical = ({ side }: { side: 'left' | 'right' }) => (
-    <div className={`bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] absolute top-5 bottom-5 w-5 overflow-hidden ${side === 'left' ? 'left-0 -scale-x-100' : 'right-0'}`}>
+    <div className={`bg-[url('/paper.webp')] absolute top-5 bottom-5 w-5 overflow-hidden ${side === 'left' ? 'left-0 -scale-x-100' : 'right-0'}`}>
         <div className="absolute top-0 left-0 flex w-max origin-top-left transform-[translateX(20px)_rotate(90deg)]">
             {vineTiles}
         </div>
@@ -199,7 +199,7 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
                     aria-label="Close"
                     onClick={requestClose}>x</button>
                 <div className={`
-                    bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] border
+                    bg-[url('/paper.webp')] border
                     w-[88vw] bg-white px-7 py-7 md:px-12 md:py-10 ${maxHeightClass} overflow-y-auto overflow-x-hidden scrollbar-gutter-both lg:max-w-[50vw] ${wide ? "md:w-[55vw]" : "md:w-auto md:max-w-[55vw]"}`}
                 style={heightOverrideStyle}
                 onClick={(e) => e.stopPropagation()}>
@@ -216,7 +216,7 @@ export const Modal = ({ isOpen, onClose, children, align = 'top', maxHeightClass
                     <div
                         className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 px-6"
                         onClick={(e) => e.stopPropagation()}>
-                        <div className="bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] border-3 bg-white p-5 text-center">
+                        <div className="bg-[url('/paper.webp')] border-3 bg-white p-5 text-center">
                             <p className="mb-4">{confirmCloseMessage}</p>
                             <div className="flex flex-wrap justify-center gap-3">
                                 <button

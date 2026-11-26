@@ -94,7 +94,7 @@ export const About = () => {
     return (
         <>
             <div className="fixed top-1 right-1 sm:top-4 sm:right-4 z-40">
-                <Button variant="sort" onClick={() => setModal('about')} aria-label="About Film Jousting" className="bg-[url('/olga-thelavart-vS3idIiYxX0-unsplash.jpg')] w-7.5 h-7.5 p-0 text-xl font-bold leading-none">?</Button>
+                <Button variant="sort" onClick={() => setModal('about')} aria-label="About Film Jousting" className="bg-[url('/paper.webp')] w-7.5 h-7.5 p-0 text-xl font-bold leading-none">?</Button>
             </div>
             <Modal isOpen={modal !== null} onClose={() => setModal(null)} align="center" label={label}>
                 {modal === 'about' &&

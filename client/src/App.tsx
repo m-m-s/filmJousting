@@ -18,7 +18,6 @@ import { useErrorModal } from '@/hooks/useErrorModal';
 import joustKnight from '@/assets/joustKnight.svg';
 import discoverBorder from '@/assets/discoverBorder.svg';
 import joustBorder from '@/assets/joustBorder.svg';
-import vineBlockTile from '@/assets/flowerOrnamentalBorder.svg';
 import { API_URL } from '@/config';
 
 function App() {
@@ -158,7 +157,6 @@ const pageNumbers = Array.from({ length: pageWindowEnd - pageWindowStart + 1 }, 
       <link rel="preload" as="image" href={joustKnight} />
       <link rel="preload" as="image" href={discoverBorder} />
       <link rel="preload" as="image" href={joustBorder} />
-      <link rel="preload" as="image" href={vineBlockTile} />
       <Welcome />
       <div className="flex items-center justify-center gap-0 sm:gap-2 m-2">
         <img src={joustKnight} alt="" className="h-44 w-auto -my-8 -mr-10 -scale-x-100" />
