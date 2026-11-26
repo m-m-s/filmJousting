@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
-import helmet from "@/assets/helmet.svg"
+import helmet from "@/assets/helmet.webp"
 
 type FilterButtonProps = {
     name: string;

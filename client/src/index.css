@@ -8,7 +8,7 @@
 
 @font-face {
   font-family: 'Romantik';
-  src: url('./assets/typeface/Romantik.ttf') format('truetype');
+  src: url('./assets/typeface/Romantik.woff2') format('woff2');
 }
 
 @theme {

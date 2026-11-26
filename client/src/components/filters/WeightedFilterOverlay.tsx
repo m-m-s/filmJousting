@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/Button';
-import helmet from '@/assets/helmet.svg';
+import helmet from '@/assets/helmet.webp';
 import type { Options, SelectionState } from '@/types';
 
  type WeightedFilterOverlayProps = {

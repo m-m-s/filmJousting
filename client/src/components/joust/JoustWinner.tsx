@@ -1,5 +1,5 @@
 import { MovieCard } from '@/components/movies/MovieCard';
-import crown from '@/assets/crown.svg';
+import crown from '@/assets/crown.webp';
 import type { ScoredMovie } from '@/types';
 
 type JoustWinnerProps = {

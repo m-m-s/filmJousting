@@ -9,7 +9,7 @@ import { LANGUAGES } from '@/data/languages';
 import { formatMins } from '@/lib/utils'
 import { makeSelectionHandler } from '@/lib/filters';
 import type { Filters } from '@/hooks/useFilters';
-import helmet from '@/assets/helmet.svg';
+import helmet from '@/assets/helmet.webp';
 import birdEmblem from '@/assets/emblem.svg';
 
 type FilterPanelProps = {
