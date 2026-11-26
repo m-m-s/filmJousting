@@ -1,5 +1,5 @@
 import type { FilterCriteria, Genre, Keyword, Movie, MovieDetails, MovieDetailsWithCredits, Person, TMDBPage } from '../types'
-import { fetchRandomPages, tmdbFetch, withMovieDefaults } from './utils'
+import { fetchRandomPages, tmdbFetch, TMDB_MAX_PAGE, withMovieDefaults } from './utils'
 
 export async function getGenres() {
   const data = await tmdbFetch<{ genres: Genre[] }>('/genre/movie/list');
@@ -113,7 +113,7 @@ export async function discoverMovies(filters: FilterCriteria) {
       const totalPages = ranked.total_pages;
 
       if (ranked.results.length === 0 && totalPages > 0 && requested > totalPages) {
-        const wrapped = ((requested - 1) % Math.min(totalPages, 500)) + 1;
+        const wrapped = ((requested - 1) % Math.min(totalPages, TMDB_MAX_PAGE)) + 1;
         ranked = await tmdbFetch<TMDBPage<Movie>>('/discover/movie', {...params, page: String(wrapped)});
       }
       allMovies.push(...ranked.results.map(withMovieDefaults));

@@ -4,6 +4,8 @@ import { AppError } from '../errors.js';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = process.env.TMDB_API_KEY;
 
+export const TMDB_MAX_PAGE = 500;
+
 export async function tmdbFetch<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const url = new URL(`${BASE_URL}${endpoint}`);
   url.searchParams.append('api_key', API_KEY || '');
@@ -32,9 +34,10 @@ export async function tmdbFetch<T>(endpoint: string, params: Record<string, stri
 };
 
 export async function fetchRandomPages<T>(endpoint: string, params: Record<string, string>, totalPages: number, count: number): Promise<T[]> {
+  const lastPage = Math.min(totalPages, TMDB_MAX_PAGE);
   const pageNum = new Set<number>();
-  while (pageNum.size < Math.min(count, totalPages -1)) {
-    pageNum.add(Math.floor(Math.random()* (totalPages - 1))+ 2);
+  while (pageNum.size < Math.min(count, lastPage - 1)) {
+    pageNum.add(Math.floor(Math.random() * (lastPage - 1)) + 2);
   }
   const pages = await Promise.all(
     [...pageNum].map(page => tmdbFetch<TMDBPage<T>>(endpoint, {...params, page: page.toString()}))
